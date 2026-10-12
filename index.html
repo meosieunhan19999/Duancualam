@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cổng Thông Tin Hệ Thống Bản Đồ Số WebGIS</title>
+  
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS & JS cho Bản đồ GIS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gis: {
+              dark: '#0B132B',
+              navy: '#1C2541',
+              blue: '#3A506B',
+              accent: '#00F0FF',
+              emerald: '#10B981',
+              warning: '#F59E0B'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @keyframes pulse-radar {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .radar-grid {
+      background-size: 36px 36px;
+      background-image: 
+        linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
+    }
+    .leaflet-popup-content-wrapper {
+      background: #1C2541 !important;
+      color: #E2E8F0 !important;
+      border-radius: 8px !important;
+      border: 1px solid #3A506B !important;
+    }
+    .leaflet-popup-tip {
+      background: #1C2541 !important;
+    }
+  </style>
+</head>
+<body class="bg-[#080E1E] text-slate-100 min-h-screen font-sans selection:bg-cyan-500 selection:text-black overflow-x-hidden">
+
+  <!-- ==================== GIAO DIỆN 1: MÀN HÌNH ĐĂNG NHẬP ==================== -->
+  <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 relative radar-grid">
+    <!-- Hiệu ứng quả cầu toạ độ mờ nền -->
+    <div class="absolute -top-20 -left-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="w-full max-w-4xl bg-[#131E3A]/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl shadow-2xl shadow-cyan-950/50 overflow-hidden flex flex-col md:flex-row z-10">
+      
+      <!-- Cột Trái: Trực quan hoá GIS / Giới thiệu -->
+      <div class="md:w-5/12 p-8 bg-gradient-to-br from-gis-navy to-[#0F172A] border-b md:border-b-0 md:border-r border-slate-700/60 flex flex-col justify-between relative overflow-hidden">
+        <div>
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-lg bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-400">
+              <i class="fa-solid fa-earth-americas text-xl animate-spin" style="animation-duration: 20s;"></i>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold tracking-wider text-white">PORTAL WEBGIS</h1>
+              <p class="text-xs text-cyan-400 font-mono tracking-widest">HỆ THỐNG DỮ LIỆU ĐỊA KHÔNG GIAN</p>
+            </div>
+          </div>
+
+          <div class="space-y-4 my-8 text-sm text-slate-300">
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-layer-group text-cyan-400 mt-1"></i>
+              <span>Tra cứu quy hoạch, ranh giới hành chính và không gian số đa lớp.</span>
+            </div>
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-satellite text-cyan-400 mt-1"></i>
+              <span>Ảnh vệ tinh viễn thám độ phân giải cao cập nhật liên tục.</span>
+            </div>
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-location-crosshairs text-cyan-400 mt-1"></i>
+              <span>Chuẩn toạ độ VN-2000, WGS-84 với công cụ đo đạc diện tích/khoảng cách.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-700 font-mono text-xs text-slate-400">
+          <div class="flex justify-between">
+            <span>Hệ quy chiếu:</span>
+            <span class="text-cyan-400">VN-2000 / WGS84</span>
+          </div>
+          <div class="flex justify-between mt-1">
+            <span>Trạng thái máy chủ:</span>
+            <span class="text-emerald-400 flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-ping"></span> Trực tuyến
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột Phải: Biểu mẫu Đăng Nhập -->
+      <div class="md:w-7/12 p-8 md:p-10 flex flex-col justify-center">
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold text-white mb-1">Đăng nhập tài khoản</h2>
+          <p class="text-sm text-slate-400">Nhập thông tin xác thực để truy cập hệ thống bản đồ số</p>
+        </div>
+
+        <form id="login-form" class="space-y-5" onsubmit="handleLogin(event)">
+          <!-- Tài khoản / Email -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">Tên người dùng / Email</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-user-shield"></i>
+              </div>
+              <input type="text" id="username" required value="admin"
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                placeholder="Nhập tài khoản hoặc email...">
+            </div>
+          </div>
+
+          <!-- Mật khẩu -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300">Mật khẩu</label>
+              <a href="#" class="text-xs text-cyan-400 hover:underline">Quên mật khẩu?</a>
+            </div>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-lock"></i>
+              </div>
+              <input type="password" id="password" required value="123456"
+                class="w-full pl-10 pr-10 py-2.5 bg-slate-900/80 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+                placeholder="••••••••">
+              <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-cyan-400">
+                <i id="eye-icon" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Nhớ mật khẩu & Vai trò -->
+          <div class="flex items-center justify-between text-sm">
+            <label class="flex items-center gap-2 cursor-pointer text-slate-300">
+              <input type="checkbox" checked class="rounded border-slate-700 text-cyan-500 focus:ring-cyan-400 bg-slate-900">
+              <span class="text-xs">Ghi nhớ phiên làm việc</span>
+            </label>
+            <span class="text-xs font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800">Cấp quyền: Chuyên viên</span>
+          </div>
+
+          <!-- Nút Đăng nhập -->
+          <button type="submit" id="btn-submit"
+            class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-lg tracking-wide transition shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2">
+            <span>VÀO HỆ THỐNG BẢN ĐỒ</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <div class="mt-6 pt-6 border-t border-slate-800 text-center text-xs text-slate-500">
+          Chưa có tài khoản? <a href="#" class="text-cyan-400 hover:underline">Liên hệ Quản trị viên GIS</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GIAO DIỆN 2: BẢN ĐỒ WEBGIS WORKSPACE ==================== -->
+  <div id="gis-screen" class="hidden h-screen flex flex-col">
+    <!-- Thanh điều hướng Topbar -->
+    <header class="h-14 bg-gis-dark border-b border-slate-700/80 flex items-center justify-between px-4 z-20 shadow-md">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-map-location-dot text-cyan-400 text-xl"></i>
+        <h2 class="font-bold text-white text-sm tracking-wide md:text-base">HỆ THỐNG BẢN ĐỒ SỐ WEBGIS TRỰC TUYẾN</h2>
+        <span class="hidden sm:inline-block text-xs bg-slate-800 border border-slate-700 text-cyan-300 px-2 py-0.5 rounded">VN-2000</span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="text-right hidden sm:block">
+          <p class="text-xs font-bold text-white" id="display-user">Chuyên viên GIS</p>
+          <p class="text-[10px] text-emerald-400">● Đang hoạt động</p>
+        </div>
+        <button onclick="handleLogout()" class="px-3 py-1.5 bg-rose-600/20 border border-rose-500/40 text-rose-400 hover:bg-rose-600 hover:text-white rounded text-xs transition flex items-center gap-1.5">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Thoát</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Thân bản đồ & Thanh công cụ cạnh bên -->
+    <div class="flex-1 relative flex">
+      <!-- Bảng điều khiển lớp dữ liệu (Sidebar) -->
+      <aside class="absolute top-3 left-3 z-[1000] w-64 bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-lg shadow-xl overflow-hidden text-xs">
+        <div class="bg-slate-800 px-3 py-2 border-b border-slate-700 font-bold flex items-center justify-between">
+          <span><i class="fa-solid fa-layer-group text-cyan-400 mr-1.5"></i> Lớp dữ liệu bản đồ</span>
+          <span class="text-[10px] bg-cyan-900/60 text-cyan-300 px-1.5 py-0.5 rounded">3 lớp</span>
+        </div>
+        
+        <div class="p-3 space-y-2.5">
+          <div>
+            <p class="text-slate-400 font-semibold mb-1">Chế độ nền bản đồ:</p>
+            <div class="grid grid-cols-3 gap-1">
+              <button onclick="setBaseLayer('osm')" class="py-1 bg-slate-800 hover:bg-cyan-900 border border-slate-700 rounded text-center">Giao thông</button>
+              <button onclick="setBaseLayer('satellite')" class="py-1 bg-slate-800 hover:bg-cyan-900 border border-slate-700 rounded text-center">Vệ tinh</button>
+              <button onclick="setBaseLayer('dark')" class="py-1 bg-cyan-600 text-white border border-cyan-400 rounded text-center font-bold">Dark GIS</button>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-800 pt-2 space-y-2">
+            <p class="text-slate-400 font-semibold">Lớp dữ liệu chuyên đề:</p>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="layer-poi" checked onchange="toggleLayers()" class="rounded text-cyan-500">
+              <span>Trạm quan trắc & mốc toạ độ</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="layer-zone" checked onchange="toggleLayers()" class="rounded text-cyan-500">
+              <span>Vùng quy hoạch mẫu</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="p-2 bg-slate-950/80 border-t border-slate-800 text-[11px] font-mono text-cyan-400 flex justify-between">
+          <span id="coords-display">Toạ độ: 10.7769, 106.7009</span>
+        </div>
+      </aside>
+
+      <!-- Khung chứa Leaflet Map -->
+      <div id="map" class="w-full h-full z-0"></div>
+    </div>
+  </div>
+
+  <!-- Javascript xử lý đăng nhập & bản đồ số Leaflet -->
+  <script>
+    function togglePassword() {
+      const pwd = document.getElementById('password');
+      const icon = document.getElementById('eye-icon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        pwd.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+
+    // Xử lý sự kiện đăng nhập
+    function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('username').value;
+      const btn = document.getElementById('btn-submit');
+      
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Đang xác thực...`;
+      btn.disabled = true;
+
+      // Giả lập xác thực trong 600ms
+      setTimeout(() => {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('gis-screen').classList.remove('hidden');
+        document.getElementById('display-user').textContent = user || "Chuyên viên GIS";
+        initGISMap();
+      }, 600);
+    }
+
+    function handleLogout() {
+      document.getElementById('gis-screen').classList.add('hidden');
+      document.getElementById('login-screen').classList.remove('hidden');
+      const btn = document.getElementById('btn-submit');
+      btn.innerHTML = `<span>VÀO HỆ THỐNG BẢN ĐỒ</span><i class="fa-solid fa-arrow-right"></i>`;
+      btn.disabled = false;
+    }
+
+    // Khởi tạo bản đồ GIS
+    let map, baseLayers = {}, currentBaseLayer, poiLayerGroup, zoneLayerGroup;
+
+    function initGISMap() {
+      if (map) {
+        map.invalidateSize();
+        return;
+      }
+
+      // Khởi tạo bản đồ tâm tại Việt Nam (TP.HCM / Hà Nội)
+      map = L.map('map', {
+        center: [10.7769, 106.7009],
+        zoom: 13,
+        zoomControl: false
+      });
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      // Định nghĩa các lớp nền Map
+      baseLayers.dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB &copy; OpenStreetMap'
+      });
+      baseLayers.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      });
+      baseLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+      });
+
+      // Lớp mặc định
+      currentBaseLayer = baseLayers.dark;
+      currentBaseLayer.addTo(map);
+
+      // Tạo lớp chuyên đề POI (Điểm quan trắc)
+      poiLayerGroup = L.layerGroup().addTo(map);
+      const points = [
+        { lat: 10.7769, lng: 106.7009, title: "Trạm Trung Tâm GIS-01", desc: "Mốc toạ độ cấp I - Hoạt động bình thường" },
+        { lat: 10.7820, lng: 106.6980, title: "Trạm Khí Tượng Thuỷ Văn", desc: "Quan trắc mực nước & lưu lượng dòng chảy" },
+        { lat: 10.7680, lng: 106.6930, title: "Trạm Giám Sát Môi Trường", desc: "Chỉ số AQI: 42 (Tốt)" }
+      ];
+
+      points.forEach(p => {
+        const marker = L.circleMarker([p.lat, p.lng], {
+          radius: 8,
+          fillColor: "#00F0FF",
+          color: "#FFFFFF",
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.85
+        });
+        marker.bindPopup(`
+          <div class="font-sans">
+            <h4 class="font-bold text-cyan-400 mb-1">${p.title}</h4>
+            <p class="text-xs text-slate-300 mb-1">${p.desc}</p>
+            <p class="text-[10px] text-slate-400 font-mono">Toạ độ: ${p.lat}, ${p.lng}</p>
+          </div>
+        `);
+        poiLayerGroup.addLayer(marker);
+      });
+
+      // Tạo lớp vùng đa giác quy hoạch
+      zoneLayerGroup = L.layerGroup().addTo(map);
+      const polygon = L.polygon([
+        [10.7720, 106.6950],
+        [10.7800, 106.7020],
+        [10.7750, 106.7090],
+        [10.7670, 106.7030]
+      ], {
+        color: '#10B981',
+        weight: 2,
+        fillColor: '#10B981',
+        fillOpacity: 0.25
+      }).bindPopup("<b>Khu vực quy hoạch đô thị số 01</b><br>Diện tích: ~142.5 ha");
+      zoneLayerGroup.addLayer(polygon);
+
+      // Hiển thị toạ độ khi rê chuột
+      map.on('mousemove', function(e) {
+        document.getElementById('coords-display').innerText = 
+          `Toạ độ: ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+      });
+    }
+
+    function setBaseLayer(type) {
+      if (!map) return;
+      map.removeLayer(currentBaseLayer);
+      currentBaseLayer = baseLayers[type];
+      currentBaseLayer.addTo(map);
+    }
+
+    function toggleLayers() {
+      if (!map) return;
+      const showPoi = document.getElementById('layer-poi').checked;
+      const showZone = document.getElementById('layer-zone').checked;
+
+      if (showPoi) map.addLayer(poiLayerGroup);
+      else map.removeLayer(poiLayerGroup);
+
+      if (showZone) map.addLayer(zoneLayerGroup);
+      else map.removeLayer(zoneLayerGroup);
+    }
+  </script>
+</body>
+</html>

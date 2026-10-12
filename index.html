@@ -3,438 +3,544 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hệ Thống Quản Lý Dự Án & Giám Sát Công Trình (PM Suite)</title>
+  <title>Base Enterprise Portal - Hệ Thống Điều Hành & Quản Trị Công Việc</title>
   
   <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Leaflet GIS Map -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            brand: {
-              dark: '#0B132B',
-              card: '#131E3A',
-              border: '#1E293B',
-              accent: '#06B6D4',
-              success: '#10B981',
-              warning: '#F59E0B',
-              danger: '#EF4444'
+            base: {
+              sidebar: '#1E293B',
+              active: '#0EA5E9',
+              bg: '#F8FAFC',
+              card: '#FFFFFF',
+              border: '#E2E8F0',
+              text: '#0F172A',
+              muted: '#64748B'
             }
           }
         }
       }
     }
   </script>
-  <style>
-    .leaflet-popup-content-wrapper {
-      background: #131E3A !important;
-      color: #E2E8F0 !important;
-      border-radius: 8px !important;
-      border: 1px solid #38BDF8 !important;
-    }
-    .leaflet-popup-tip { background: #131E3A !important; }
-  </style>
 </head>
-<body class="bg-[#080E1E] text-slate-100 min-h-screen font-sans flex flex-col">
+<body class="bg-base-bg text-base-text font-sans min-h-screen flex antialiased">
 
-  <!-- ==================== HEADER / THANH ĐIỀU HƯỚNG ==================== -->
-  <header class="h-16 bg-[#0B132B] border-b border-slate-800 px-6 flex items-center justify-between sticky top-0 z-50">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-lg bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-cyan-400">
-        <i class="fa-solid fa-diagram-project text-lg"></i>
+  <!-- ================= SIDEBAR ĐIỀU HƯỚNG KIỂU BASE ================= -->
+  <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 border-r border-slate-800">
+    <!-- Logo & Tổ chức -->
+    <div class="h-16 flex items-center px-6 gap-3 border-b border-slate-800/80 bg-slate-950/40">
+      <div class="w-9 h-9 rounded-lg bg-sky-500 flex items-center justify-center text-white font-black text-lg shadow-md shadow-sky-500/30">
+        B
       </div>
       <div>
-        <h1 class="font-bold text-white tracking-wide text-base sm:text-lg">TRUNG TÂM QUẢN LÝ DỰ ÁN</h1>
-        <p class="text-xs text-cyan-400 font-mono tracking-widest">HỆ THỐNG GIÁM SÁT TIẾN ĐỘ & CÔNG TRÌNH</p>
+        <h2 class="font-bold text-white text-sm tracking-wide">BASE PLATFORM</h2>
+        <p class="text-[11px] text-sky-400 font-medium">Quản lý Dự án & Đề xuất</p>
       </div>
     </div>
 
-    <!-- Thanh chuyển Tab & Người dùng -->
-    <div class="flex items-center gap-3">
-      <div class="bg-slate-900 border border-slate-700 p-1 rounded-lg flex text-xs">
-        <button id="tab-btn-tasks" onclick="switchView('tasks')" class="px-3 py-1.5 rounded-md bg-cyan-600 text-white font-medium transition">
-          <i class="fa-solid fa-list-check mr-1.5"></i>Bảng Tiến Độ (Kanban)
-        </button>
-        <button id="tab-btn-map" onclick="switchView('map')" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition">
-          <i class="fa-solid fa-map-location-dot mr-1.5"></i>Bản Đồ Dự Án
-        </button>
-      </div>
-
-      <button onclick="openModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md shadow-cyan-500/20">
-        <i class="fa-solid fa-plus"></i>
-        <span>Thêm Công Việc</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- ==================== NỘI DUNG CHÍNH ==================== -->
-  <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
-
-    <!-- KPI THỐNG KÊ NHANH TIẾN ĐỘ -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-[#131E3A] border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-        <div>
-          <p class="text-xs text-slate-400 font-medium">Tổng đầu việc</p>
-          <p id="stat-total" class="text-2xl font-bold text-white mt-1">0</p>
-        </div>
-        <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg">
-          <i class="fa-solid fa-briefcase"></i>
-        </div>
-      </div>
-
-      <div class="bg-[#131E3A] border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-        <div>
-          <p class="text-xs text-slate-400 font-medium">Đang triển khai</p>
-          <p id="stat-in-progress" class="text-2xl font-bold text-amber-400 mt-1">0</p>
-        </div>
-        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg">
-          <i class="fa-solid fa-spinner animate-spin" style="animation-duration: 6s;"></i>
-        </div>
-      </div>
-
-      <div class="bg-[#131E3A] border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-        <div>
-          <p class="text-xs text-slate-400 font-medium">Đã hoàn thành</p>
-          <p id="stat-completed" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
-        </div>
-        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
-          <i class="fa-solid fa-circle-check"></i>
-        </div>
-      </div>
-
-      <div class="bg-[#131E3A] border border-slate-800 p-4 rounded-xl flex items-center justify-between">
-        <div>
-          <p class="text-xs text-slate-400 font-medium">Tiến độ chung</p>
-          <p id="stat-percent" class="text-2xl font-bold text-cyan-400 mt-1">0%</p>
-        </div>
-        <div class="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-lg">
-          <i class="fa-solid fa-chart-pie"></i>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW 1: BẢNG KANBAN TIẾN ĐỘ CÔNG VIỆC -->
-    <div id="view-tasks" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Danh sách ứng dụng chính -->
+    <nav class="flex-1 px-3 py-4 space-y-1 text-sm font-medium">
+      <div class="px-3 pb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ứng Dụng Nghiệp Vụ</div>
       
-      <!-- Cột 1: Chuẩn bị / Chờ làm -->
-      <div class="bg-[#101932] border border-slate-800/80 rounded-xl p-4 flex flex-col">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-            <h3 class="font-bold text-sm text-slate-200">Chuẩn Bị / Chờ Làm</h3>
-          </div>
-          <span id="badge-todo" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">0</span>
-        </div>
-        <div id="col-todo" class="space-y-3 min-h-[300px] flex-1"></div>
-      </div>
+      <button onclick="switchTab('wework')" id="nav-wework" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-sky-500 text-white transition shadow-sm">
+        <i class="fa-solid fa-layer-group w-5 text-center"></i>
+        <span>Base Wework</span>
+        <span class="ml-auto text-[10px] bg-sky-400/30 px-1.5 py-0.5 rounded text-sky-100 font-bold" id="badge-total-tasks">0</span>
+      </button>
 
-      <!-- Cột 2: Đang triển khai -->
-      <div class="bg-[#101932] border border-slate-800/80 rounded-xl p-4 flex flex-col">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-            <h3 class="font-bold text-sm text-slate-200">Đang Thực Hiện</h3>
-          </div>
-          <span id="badge-progress" class="text-xs bg-amber-950/60 text-amber-300 px-2 py-0.5 rounded font-mono">0</span>
-        </div>
-        <div id="col-progress" class="space-y-3 min-h-[300px] flex-1"></div>
-      </div>
+      <button onclick="switchTab('request')" id="nav-request" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-file-signature w-5 text-center text-emerald-400"></i>
+        <span>Base Request</span>
+        <span class="ml-auto text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400 font-bold" id="badge-pending-reqs">0</span>
+      </button>
 
-      <!-- Cột 3: Hoàn thành -->
-      <div class="bg-[#101932] border border-slate-800/80 rounded-xl p-4 flex flex-col">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-            <h3 class="font-bold text-sm text-slate-200">Đã Hoàn Thành</h3>
-          </div>
-          <span id="badge-done" class="text-xs bg-emerald-950/60 text-emerald-300 px-2 py-0.5 rounded font-mono">0</span>
-        </div>
-        <div id="col-done" class="space-y-3 min-h-[300px] flex-1"></div>
-      </div>
+      <button onclick="switchTab('members')" id="nav-members" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800/70 transition">
+        <i class="fa-solid fa-users w-5 text-center text-indigo-400"></i>
+        <span>Nhân sự & Phân công</span>
+      </button>
 
+      <div class="px-3 pt-4 pb-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Hệ Thống</div>
+      <button onclick="alert('Tính năng cài đặt hệ thống đang chuẩn bị cập nhật.')" class="w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-slate-400 hover:bg-slate-800/50 transition">
+        <i class="fa-solid fa-gear w-5 text-center"></i>
+        <span>Cài đặt chung</span>
+      </button>
+    </nav>
+
+    <!-- Thông tin người quản lý đăng nhập -->
+    <div class="p-3 border-t border-slate-800/80 bg-slate-950/20">
+      <div class="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-slate-800/50">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-500 text-white flex items-center justify-center font-bold text-xs">
+          PM
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-xs font-semibold text-white truncate">Quản Lý Dự Án</p>
+          <p class="text-[10px] text-emerald-400">Trực tuyến</p>
+        </div>
+      </div>
     </div>
+  </aside>
 
-    <!-- VIEW 2: BẢN ĐỒ VỊ TRÍ CÔNG TRÌNH / DỰ ÁN -->
-    <div id="view-map" class="hidden bg-[#101932] border border-slate-800 rounded-xl p-4 space-y-3">
-      <div class="flex items-center justify-between text-xs">
-        <div class="flex items-center gap-2 text-slate-300">
-          <i class="fa-solid fa-location-dot text-cyan-400"></i>
-          <span>Vị trí các công trình / gói thầu đang quản lý:</span>
-        </div>
-        <span class="font-mono text-cyan-400" id="map-point-count">3 Điểm công trình</span>
+  <!-- ================= KHUNG CHÍNH (CONTENT) ================= -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    
+    <!-- Topbar tìm kiếm & hành động -->
+    <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20">
+      <div class="flex items-center gap-3">
+        <h2 id="page-title" class="text-lg font-bold text-slate-900">Base Wework - Quản Lý Công Việc & Dự Án</h2>
       </div>
-      <div id="map-container" class="w-full h-[520px] rounded-lg border border-slate-700"></div>
-    </div>
 
-  </main>
-
-  <!-- ==================== MODAL: THÊM CÔNG VIỆC MỚI ==================== -->
-  <div id="task-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div class="bg-[#131E3A] border border-cyan-500/30 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
-        <h3 class="font-bold text-white text-base flex items-center gap-2">
-          <i class="fa-solid fa-folder-plus text-cyan-400"></i>
-          Thêm Nhiệm Vụ / Hạng Mục Mới
-        </h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-white">
-          <i class="fa-solid fa-xmark text-lg"></i>
+      <div class="flex items-center gap-3">
+        <button id="btn-create" onclick="openActionModal()" class="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-sm transition">
+          <i class="fa-solid fa-plus"></i>
+          <span id="btn-create-text">Tạo Công Việc</span>
         </button>
       </div>
+    </header>
 
-      <form id="task-form" onsubmit="handleAddTask(event)" class="space-y-4 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-300 mb-1">Tên công việc / Hạng mục *</label>
-          <input type="text" id="input-title" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400" placeholder="Ví dụ: Thi công trạm biến áp số 2...">
+    <!-- ================= VIEW 1: BASE WEWORK (QUẢN LÝ CÔNG VIỆC) ================= -->
+    <main id="view-wework" class="p-6 space-y-6">
+      <!-- Thống kê nhanh tiến độ -->
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Tổng đầu việc</p>
+            <p id="stat-wework-total" class="text-2xl font-bold text-slate-900 mt-0.5">0</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center"><i class="fa-solid fa-list-check"></i></div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Đang thực hiện</p>
+            <p id="stat-wework-prog" class="text-2xl font-bold text-amber-500 mt-0.5">0</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-spinner"></i></div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Đã hoàn thành</p>
+            <p id="stat-wework-done" class="text-2xl font-bold text-emerald-600 mt-0.5">0</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-circle-check"></i></div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Tỷ lệ hoàn thành</p>
+            <p id="stat-wework-rate" class="text-2xl font-bold text-indigo-600 mt-0.5">0%</p>
+          </div>
+          <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center"><i class="fa-solid fa-chart-pie"></i></div>
+        </div>
+      </div>
+
+      <!-- Bảng Kanban Công việc -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- Cột 1: Cần làm -->
+        <div class="bg-slate-100/70 border border-slate-200 rounded-xl p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+            <span class="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Cần làm (To-Do)
+            </span>
+            <span id="badge-todo" class="text-xs bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600 font-bold font-mono">0</span>
+          </div>
+          <div id="col-todo" class="space-y-3 flex-1"></div>
         </div>
 
+        <!-- Cột 2: Đang thực hiện -->
+        <div class="bg-slate-100/70 border border-slate-200 rounded-xl p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+            <span class="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Đang làm (In Progress)
+            </span>
+            <span id="badge-prog" class="text-xs bg-white px-2 py-0.5 rounded border border-slate-200 text-amber-600 font-bold font-mono">0</span>
+          </div>
+          <div id="col-prog" class="space-y-3 flex-1"></div>
+        </div>
+
+        <!-- Cột 3: Đã hoàn thành -->
+        <div class="bg-slate-100/70 border border-slate-200 rounded-xl p-4 flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+            <span class="font-bold text-xs uppercase tracking-wider text-slate-700 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Hoàn thành (Done)
+            </span>
+            <span id="badge-done" class="text-xs bg-white px-2 py-0.5 rounded border border-slate-200 text-emerald-600 font-bold font-mono">0</span>
+          </div>
+          <div id="col-done" class="space-y-3 flex-1"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= VIEW 2: BASE REQUEST (DUYỆT ĐỀ XUẤT) ================= -->
+    <main id="view-request" class="p-6 space-y-6 hidden">
+      <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <div>
+            <h3 class="font-bold text-sm text-slate-800">Danh Sách Đề Xuất & Tờ Trình Cần Phê Duyệt</h3>
+            <p class="text-xs text-slate-500">Duyệt cấp vật tư, tạm ứng ngân sách và văn bản nội bộ</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-100 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="p-3.5">Tiêu đề đề xuất</th>
+                <th class="p-3.5">Người đề xuất</th>
+                <th class="p-3.5">Loại yêu cầu</th>
+                <th class="p-3.5">Số tiền / Nội dung</th>
+                <th class="p-3.5">Trạng thái</th>
+                <th class="p-3.5 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="request-table-body" class="divide-y divide-slate-200">
+              <!-- Render động bằng JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= VIEW 3: THÀNH VIÊN NHÂN SỰ ================= -->
+    <main id="view-members" class="p-6 hidden">
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm max-w-4xl">
+        <h3 class="font-bold text-sm text-slate-800 mb-4">Danh Sách Thành Viên & Kỹ Sư Dự Án</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="members-list">
+          <!-- Render danh sách nhân sự -->
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ================= MODAL: THÊM CÔNG VIỆC HOẶC TẠO ĐỀ XUẤT ================= -->
+  <div id="action-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <h3 id="modal-title" class="font-bold text-sm text-slate-800">Tạo mới</h3>
+        <button onclick="closeActionModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <!-- Form Thêm Công Việc (Wework) -->
+      <form id="form-task" onsubmit="handleCreateTask(event)" class="p-5 space-y-3.5 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Tên công việc / Đầu mục *</label>
+          <input type="text" id="task-title" required placeholder="Ví dụ: Kiểm tra bản vẽ kết cấu..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500">
+        </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Người phụ trách</label>
-            <input type="text" id="input-assignee" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400" placeholder="Kỹ sư phụ trách...">
+            <label class="block font-semibold text-slate-700 mb-1">Giao cho nhân viên</label>
+            <select id="task-assignee" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500">
+              <option value="Nguyễn Văn An">Nguyễn Văn An (Kỹ sư)</option>
+              <option value="Trần Quốc Huy">Trần Quốc Huy (Giám sát)</option>
+              <option value="Lê Thị Mai">Lê Thị Mai (Kế toán)</option>
+            </select>
           </div>
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Mức độ ưu tiên</label>
-            <select id="input-priority" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400">
-              <option value="Cao">🔴 Cao</option>
-              <option value="Trung bình" selected>🟡 Trung bình</option>
-              <option value="Thấp">🟢 Thấp</option>
+            <label class="block font-semibold text-slate-700 mb-1">Mức ưu tiên</label>
+            <select id="task-priority" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500">
+              <option value="Khẩn cấp">🔴 Khẩn cấp</option>
+              <option value="Cao" selected>🟡 Cao</option>
+              <option value="Bình thường">🟢 Bình thường</option>
             </select>
           </div>
         </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Hạn chót (Deadline)</label>
+          <input type="date" id="task-deadline" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500">
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeActionModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50">Hủy</button>
+          <button type="submit" class="px-4 py-2 bg-sky-500 text-white font-semibold rounded-lg hover:bg-sky-600">Lưu Công Việc</button>
+        </div>
+      </form>
 
+      <!-- Form Tạo Đề Xuất (Request) -->
+      <form id="form-request" onsubmit="handleCreateRequest(event)" class="p-5 space-y-3.5 text-xs hidden">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Tiêu đề đề xuất *</label>
+          <input type="text" id="req-title" required placeholder="Ví dụ: Xin tạm ứng mua vật tư tuần 4..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500">
+        </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-slate-300 mb-1">Hạn hoàn thành</label>
-            <input type="date" id="input-deadline" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-300 mb-1">Trạng thái ban đầu</label>
-            <select id="input-status" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400">
-              <option value="todo">Chờ làm</option>
-              <option value="progress">Đang thực hiện</option>
-              <option value="done">Đã hoàn thành</option>
+            <label class="block font-semibold text-slate-700 mb-1">Loại đề xuất</label>
+            <select id="req-type" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500">
+              <option value="Tạm ứng ngân sách">Tạm ứng ngân sách</option>
+              <option value="Mua sắm vật tư">Mua sắm vật tư</option>
+              <option value="Duyệt hồ sơ nghiệm thu">Duyệt hồ sơ nghiệm thu</option>
             </select>
           </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Số tiền (VNĐ nếu có)</label>
+            <input type="text" id="req-amount" placeholder="VD: 15.000.000 đ" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500">
+          </div>
         </div>
-
         <div>
-          <label class="block font-semibold text-slate-300 mb-1">Toạ độ công trình (tuỳ chọn: Lat, Lng)</label>
-          <input type="text" id="input-coords" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400" placeholder="Ví dụ: 10.7769, 106.7009">
+          <label class="block font-semibold text-slate-700 mb-1">Người làm đơn</label>
+          <input type="text" id="req-creator" value="Trần Quốc Huy" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500">
         </div>
-
-        <div class="pt-4 border-t border-slate-800 flex justify-end gap-2">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Huỷ bỏ</button>
-          <button type="submit" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg shadow-md">Lưu Công Việc</button>
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeActionModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg hover:bg-slate-50">Hủy</button>
+          <button type="submit" class="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700">Gửi Phê Duyệt</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ==================== JAVASCRIPT XỬ LÝ DỮ LIỆU & BẢN ĐỒ ==================== -->
+  <!-- ================= JAVASCRIPT ĐIỀU HÀNH ================= -->
   <script>
-    // Dữ liệu mẫu ban đầu nếu máy chưa có dữ liệu
-    const initialTasks = [
-      { id: 1, title: "Khảo sát mặt bằng móng trạm biến áp", assignee: "Nguyễn Văn A", priority: "Cao", deadline: "2026-10-20", status: "progress", coords: [10.7769, 106.7009] },
-      { id: 2, title: "Lập dự toán vật tư cáp ngầm 22kV", assignee: "Trần Thị B", priority: "Trung bình", deadline: "2026-10-25", status: "todo", coords: [10.7820, 106.6980] },
-      { id: 3, title: "Nghiệm thu bản vẽ thiết kế thi công giai đoạn 1", assignee: "Phạm Văn C", priority: "Cao", deadline: "2026-10-15", status: "done", coords: [10.7680, 106.6930] }
+    let currentTab = 'wework';
+
+    // Dữ liệu ban đầu
+    const defaultTasks = [
+      { id: 1, title: "Lập phương án thi công trạm số 2", assignee: "Nguyễn Văn An", priority: "Khẩn cấp", deadline: "2026-10-18", status: "progress" },
+      { id: 2, title: "Kiểm định chất lượng bê tông móng", assignee: "Trần Quốc Huy", priority: "Cao", deadline: "2026-10-22", status: "todo" },
+      { id: 3, title: "Đối chiếu công nợ nhà cung cấp cáp điện", assignee: "Lê Thị Mai", priority: "Bình thường", deadline: "2026-10-14", status: "done" }
     ];
 
-    let tasks = JSON.parse(localStorage.getItem('pm_tasks')) || initialTasks;
+    const defaultRequests = [
+      { id: 101, title: "Tạm ứng chi phí tiếp đoàn kiểm tra an toàn", creator: "Trần Quốc Huy", type: "Tạm ứng ngân sách", amount: "5.000.000 đ", status: "pending" },
+      { id: 102, title: "Cấp phát 50 cuộn băng cảnh báo cáp ngầm", creator: "Nguyễn Văn An", type: "Mua sắm vật tư", amount: "Vật tư kho", status: "approved" }
+    ];
 
-    function saveTasks() {
-      localStorage.setItem('pm_tasks', JSON.stringify(tasks));
-      renderTasks();
-      updateStats();
-      if (map) renderMapMarkers();
+    const members = [
+      { name: "Nguyễn Văn An", role: "Kỹ sư trưởng dự án", email: "an.nguyen@congtrinh.vn", tasksCount: 3 },
+      { name: "Trần Quốc Huy", role: "Chuyên viên giám sát thi công", email: "huy.tran@congtrinh.vn", tasksCount: 2 },
+      { name: "Lê Thị Mai", role: "Kế toán dự án & vật tư", email: "mai.le@congtrinh.vn", tasksCount: 1 }
+    ];
+
+    let tasks = JSON.parse(localStorage.getItem('base_tasks')) || defaultTasks;
+    let requests = JSON.parse(localStorage.getItem('base_requests')) || defaultRequests;
+
+    function saveAll() {
+      localStorage.setItem('base_tasks', JSON.stringify(tasks));
+      localStorage.setItem('base_requests', JSON.stringify(requests));
+      renderWework();
+      renderRequests();
+      renderMembers();
     }
 
-    function renderTasks() {
+    function switchTab(tab) {
+      currentTab = tab;
+      const viewWework = document.getElementById('view-wework');
+      const viewReq = document.getElementById('view-request');
+      const viewMem = document.getElementById('view-members');
+      const title = document.getElementById('page-title');
+      const btnText = document.getElementById('btn-create-text');
+
+      const navW = document.getElementById('nav-wework');
+      const navR = document.getElementById('nav-request');
+      const navM = document.getElementById('nav-members');
+
+      // Đặt lại style sidebar
+      [navW, navR, navM].forEach(el => el.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800/70 transition");
+
+      viewWework.classList.add('hidden');
+      viewReq.classList.add('hidden');
+      viewMem.classList.add('hidden');
+
+      if (tab === 'wework') {
+        viewWework.classList.remove('hidden');
+        navW.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-sky-500 text-white transition shadow-sm";
+        title.innerText = "Base Wework - Quản Lý Công Việc & Dự Án";
+        btnText.innerText = "Tạo Công Việc";
+      } else if (tab === 'request') {
+        viewReq.classList.remove('hidden');
+        navR.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-emerald-600 text-white transition shadow-sm";
+        title.innerText = "Base Request - Phê Duyệt Đề Xuất Trực Tuyến";
+        btnText.innerText = "Gửi Đề Xuất Mới";
+      } else {
+        viewMem.classList.remove('hidden');
+        navM.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-indigo-600 text-white transition shadow-sm";
+        title.innerText = "Nhân Sự & Đội Ngũ Thực Hiện";
+        btnText.innerText = "Tạo Công Việc";
+      }
+    }
+
+    // Render bảng Wework Kanban
+    function renderWework() {
       const colTodo = document.getElementById('col-todo');
-      const colProgress = document.getElementById('col-progress');
+      const colProg = document.getElementById('col-prog');
       const colDone = document.getElementById('col-done');
 
-      colTodo.innerHTML = '';
-      colProgress.innerHTML = '';
-      colDone.innerHTML = '';
-
-      let countTodo = 0, countProg = 0, countDone = 0;
+      colTodo.innerHTML = ''; colProg.innerHTML = ''; colDone.innerHTML = '';
+      let cTodo = 0, cProg = 0, cDone = 0;
 
       tasks.forEach(t => {
         const card = document.createElement('div');
-        card.className = "bg-[#182647] border border-slate-700/80 p-3.5 rounded-lg shadow-sm hover:border-cyan-400/50 transition";
+        card.className = "bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs hover:shadow-md transition space-y-2.5";
         
-        const priorityColor = t.priority === 'Cao' ? 'text-rose-400 bg-rose-950/50 border-rose-800' :
-                              t.priority === 'Trung bình' ? 'text-amber-400 bg-amber-950/50 border-amber-800' : 
-                              'text-emerald-400 bg-emerald-950/50 border-emerald-800';
+        const badgeColor = t.priority === 'Khẩn cấp' ? 'bg-rose-50 text-rose-600 border-rose-200' :
+                           t.priority === 'Cao' ? 'bg-amber-50 text-amber-600 border-amber-200' : 
+                           'bg-slate-50 text-slate-600 border-slate-200';
 
         card.innerHTML = `
-          <div class="flex items-start justify-between gap-2 mb-2">
-            <span class="text-[10px] px-2 py-0.5 rounded border font-medium ${priorityColor}">${t.priority}</span>
-            <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 text-xs transition" title="Xoá">
-              <i class="fa-solid fa-trash"></i>
-            </button>
+          <div class="flex items-center justify-between text-[10px]">
+            <span class="px-2 py-0.5 rounded font-bold border ${badgeColor}">${t.priority}</span>
+            <button onclick="deleteTask(${t.id})" class="text-slate-400 hover:text-rose-600"><i class="fa-regular fa-trash-can"></i></button>
           </div>
-          <h4 class="font-bold text-slate-100 text-xs mb-2 leading-snug">${t.title}</h4>
-          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-700/50">
-            <span class="flex items-center gap-1.5"><i class="fa-regular fa-user text-cyan-400"></i> ${t.assignee || 'Chưa gán'}</span>
-            <span class="font-mono text-[10px]">${t.deadline || 'Không có hạn'}</span>
+          <h4 class="font-semibold text-slate-800 text-xs leading-snug">${t.title}</h4>
+          <div class="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-user-check text-sky-500"></i> ${t.assignee}</span>
+            <span class="font-mono text-[10px] text-slate-400">${t.deadline || 'Chưa có hạn'}</span>
           </div>
-          <div class="mt-3 pt-2 border-t border-slate-800 flex justify-end gap-1">
-            ${t.status !== 'todo' ? `<button onclick="changeStatus(${t.id}, 'todo')" class="text-[10px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">← Chờ</button>` : ''}
-            ${t.status !== 'progress' ? `<button onclick="changeStatus(${t.id}, 'progress')" class="text-[10px] px-2 py-0.5 bg-amber-900/60 hover:bg-amber-800 rounded text-amber-200">Làm việc</button>` : ''}
-            ${t.status !== 'done' ? `<button onclick="changeStatus(${t.id}, 'done')" class="text-[10px] px-2 py-0.5 bg-emerald-900/60 hover:bg-emerald-800 rounded text-emerald-200">Xong ✓</button>` : ''}
+          <div class="pt-1 flex justify-end gap-1 text-[10px]">
+            ${t.status !== 'todo' ? `<button onclick="moveTask(${t.id}, 'todo')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 font-medium">← Chờ</button>` : ''}
+            ${t.status !== 'progress' ? `<button onclick="moveTask(${t.id}, 'progress')" class="px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded font-medium">Đang làm</button>` : ''}
+            ${t.status !== 'done' ? `<button onclick="moveTask(${t.id}, 'done')" class="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded font-medium">Xong ✓</button>` : ''}
           </div>
         `;
 
-        if (t.status === 'todo') { colTodo.appendChild(card); countTodo++; }
-        else if (t.status === 'progress') { colProgress.appendChild(card); countProg++; }
-        else if (t.status === 'done') { colDone.appendChild(card); countDone++; }
+        if (t.status === 'todo') { colTodo.appendChild(card); cTodo++; }
+        else if (t.status === 'progress') { colProg.appendChild(card); cProg++; }
+        else if (t.status === 'done') { colDone.appendChild(card); cDone++; }
       });
 
-      document.getElementById('badge-todo').innerText = countTodo;
-      document.getElementById('badge-progress').innerText = countProg;
-      document.getElementById('badge-done').innerText = countDone;
+      document.getElementById('badge-todo').innerText = cTodo;
+      document.getElementById('badge-prog').innerText = cProg;
+      document.getElementById('badge-done').innerText = cDone;
+      document.getElementById('badge-total-tasks').innerText = tasks.length;
+
+      // Cập nhật stats
+      document.getElementById('stat-wework-total').innerText = tasks.length;
+      document.getElementById('stat-wework-prog').innerText = cProg;
+      document.getElementById('stat-wework-done').innerText = cDone;
+      const rate = tasks.length > 0 ? Math.round((cDone / tasks.length) * 100) : 0;
+      document.getElementById('stat-wework-rate').innerText = `${rate}%`;
     }
 
-    function updateStats() {
-      const total = tasks.length;
-      const done = tasks.filter(t => t.status === 'done').length;
-      const prog = tasks.filter(t => t.status === 'progress').length;
-      const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+    // Render bảng Request
+    function renderRequests() {
+      const tbody = document.getElementById('request-table-body');
+      tbody.innerHTML = '';
+      let pendingCount = 0;
 
-      document.getElementById('stat-total').innerText = total;
-      document.getElementById('stat-in-progress').innerText = prog;
-      document.getElementById('stat-completed').innerText = done;
-      document.getElementById('stat-percent').innerText = `${percent}%`;
+      requests.forEach(r => {
+        if (r.status === 'pending') pendingCount++;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition";
+
+        const statusBadge = r.status === 'approved' ? '<span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[11px] font-bold">Đã Phê Duyệt</span>' :
+                            r.status === 'rejected' ? '<span class="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded text-[11px] font-bold">Từ Chối</span>' :
+                            '<span class="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded text-[11px] font-bold">Chờ Duyệt</span>';
+
+        tr.innerHTML = `
+          <td class="p-3.5 font-bold text-slate-800">${r.title}</td>
+          <td class="p-3.5 text-slate-600">${r.creator}</td>
+          <td class="p-3.5 text-slate-500">${r.type}</td>
+          <td class="p-3.5 font-mono text-slate-700 font-semibold">${r.amount}</td>
+          <td class="p-3.5">${statusBadge}</td>
+          <td class="p-3.5 text-right space-x-1">
+            ${r.status === 'pending' ? `
+              <button onclick="approveRequest(${r.id}, 'approved')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-semibold">Duyệt</button>
+              <button onclick="approveRequest(${r.id}, 'rejected')" class="px-2.5 py-1 bg-slate-200 hover:bg-rose-100 hover:text-rose-600 text-slate-700 rounded text-[11px]">Từ chối</button>
+            ` : `<span class="text-slate-400 text-[11px]">Hoàn tất</span>`}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('badge-pending-reqs').innerText = pendingCount;
     }
 
-    function changeStatus(id, newStatus) {
+    function renderMembers() {
+      const container = document.getElementById('members-list');
+      container.innerHTML = '';
+      members.forEach(m => {
+        const item = document.createElement('div');
+        item.className = "p-4 border border-slate-200 rounded-xl bg-slate-50/60 flex items-center justify-between";
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-sky-500 text-white font-bold flex items-center justify-center text-sm shadow-sm">
+              ${m.name.charAt(0)}
+            </div>
+            <div>
+              <h4 class="font-bold text-xs text-slate-800">${m.name}</h4>
+              <p class="text-[11px] text-slate-500">${m.role}</p>
+              <p class="text-[10px] text-slate-400 font-mono">${m.email}</p>
+            </div>
+          </div>
+          <span class="text-xs bg-white border border-slate-200 px-2 py-1 rounded text-slate-600 font-medium">Phụ trách: <b>${tasks.filter(t => t.assignee === m.name).length}</b> việc</span>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function moveTask(id, st) {
       const task = tasks.find(t => t.id === id);
-      if (task) {
-        task.status = newStatus;
-        saveTasks();
-      }
+      if (task) { task.status = st; saveAll(); }
     }
 
     function deleteTask(id) {
-      if (confirm('Bạn có chắc muốn xoá công việc này?')) {
+      if (confirm('Xóa công việc này khỏi bảng?')) {
         tasks = tasks.filter(t => t.id !== id);
-        saveTasks();
+        saveAll();
       }
     }
 
-    function handleAddTask(e) {
-      e.preventDefault();
-      const title = document.getElementById('input-title').value;
-      const assignee = document.getElementById('input-assignee').value;
-      const priority = document.getElementById('input-priority').value;
-      const deadline = document.getElementById('input-deadline').value;
-      const status = document.getElementById('input-status').value;
-      const coordsInput = document.getElementById('input-coords').value.trim();
+    function approveRequest(id, status) {
+      const req = requests.find(r => r.id === id);
+      if (req) { req.status = status; saveAll(); }
+    }
 
-      let coords = null;
-      if (coordsInput) {
-        const parts = coordsInput.split(',').map(s => parseFloat(s.trim()));
-        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-          coords = parts;
-        }
+    // Modal tạo mới
+    function openActionModal() {
+      const modal = document.getElementById('action-modal');
+      const formTask = document.getElementById('form-task');
+      const formReq = document.getElementById('form-request');
+      const modalTitle = document.getElementById('modal-title');
+
+      modal.classList.remove('hidden');
+      if (currentTab === 'request') {
+        formTask.classList.add('hidden');
+        formReq.classList.remove('hidden');
+        modalTitle.innerText = "Gửi Tờ Trình / Đề Xuất Phê Duyệt";
+      } else {
+        formReq.classList.add('hidden');
+        formTask.classList.remove('hidden');
+        modalTitle.innerText = "Tạo Nhiệm Vụ / Công Việc Mới (Wework)";
       }
+    }
 
+    function closeActionModal() {
+      document.getElementById('action-modal').classList.add('hidden');
+    }
+
+    function handleCreateTask(e) {
+      e.preventDefault();
       tasks.push({
         id: Date.now(),
-        title,
-        assignee,
-        priority,
-        deadline,
-        status,
-        coords
+        title: document.getElementById('task-title').value,
+        assignee: document.getElementById('task-assignee').value,
+        priority: document.getElementById('task-priority').value,
+        deadline: document.getElementById('task-deadline').value,
+        status: 'todo'
       });
-
-      saveTasks();
-      closeModal();
-      document.getElementById('task-form').reset();
+      saveAll();
+      closeActionModal();
+      document.getElementById('form-task').reset();
     }
 
-    function openModal() { document.getElementById('task-modal').classList.remove('hidden'); }
-    function closeModal() { document.getElementById('task-modal').classList.add('hidden'); }
-
-    // Chuyển đổi tab Kanban và Bản đồ
-    function switchView(view) {
-      const viewTasks = document.getElementById('view-tasks');
-      const viewMap = document.getElementById('view-map');
-      const btnTasks = document.getElementById('tab-btn-tasks');
-      const btnMap = document.getElementById('tab-btn-map');
-
-      if (view === 'tasks') {
-        viewTasks.classList.remove('hidden');
-        viewMap.classList.add('hidden');
-        btnTasks.className = "px-3 py-1.5 rounded-md bg-cyan-600 text-white font-medium transition";
-        btnMap.className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition";
-      } else {
-        viewTasks.classList.add('hidden');
-        viewMap.classList.remove('hidden');
-        btnMap.className = "px-3 py-1.5 rounded-md bg-cyan-600 text-white font-medium transition";
-        btnTasks.className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition";
-        initMap();
-      }
-    }
-
-    // Bản đồ vị trí GIS
-    let map, markerLayer;
-    function initMap() {
-      if (!map) {
-        map = L.map('map-container').setView([10.7769, 106.7009], 12);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; CartoDB &copy; OpenStreetMap'
-        }).addTo(map);
-        markerLayer = L.layerGroup().addTo(map);
-      }
-      setTimeout(() => {
-        map.invalidateSize();
-        renderMapMarkers();
-      }, 200);
-    }
-
-    function renderMapMarkers() {
-      if (!markerLayer) return;
-      markerLayer.clearLayers();
-      let count = 0;
-      tasks.forEach(t => {
-        if (t.coords && t.coords.length === 2) {
-          count++;
-          const markerColor = t.status === 'done' ? '#10B981' : t.status === 'progress' ? '#F59E0B' : '#00F0FF';
-          const marker = L.circleMarker(t.coords, {
-            radius: 8,
-            fillColor: markerColor,
-            color: '#FFFFFF',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.9
-          });
-          marker.bindPopup(`
-            <div class="font-sans">
-              <span class="text-[10px] text-cyan-400 font-bold uppercase">${t.priority}</span>
-              <h4 class="font-bold text-white text-xs mt-1 mb-1">${t.title}</h4>
-              <p class="text-[11px] text-slate-300">Phụ trách: ${t.assignee || 'Chưa rõ'}</p>
-              <p class="text-[10px] text-emerald-400 mt-1">Trạng thái: ${t.status}</p>
-            </div>
-          `);
-          markerLayer.addLayer(marker);
-        }
+    function handleCreateRequest(e) {
+      e.preventDefault();
+      requests.push({
+        id: Date.now(),
+        title: document.getElementById('req-title').value,
+        creator: document.getElementById('req-creator').value,
+        type: document.getElementById('req-type').value,
+        amount: document.getElementById('req-amount').value || 'Không có',
+        status: 'pending'
       });
-      document.getElementById('map-point-count').innerText = `${count} Vị trí công trình`;
+      saveAll();
+      closeActionModal();
+      document.getElementById('form-request').reset();
     }
 
-    // Khởi chạy
-    renderTasks();
-    updateStats();
+    // Khởi chạy khi load trang
+    saveAll();
   </script>
 </body>
 </html>

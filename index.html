@@ -3,11 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ban Quản Lý Dự Án Truyền Tải Điện - Cổng Điều Hành & Quản Trị</title>
+  <title>Ban Quản Lý Dự Án Một Mình Lâm - Cổng Điều Hành & WebGIS</title>
   
   <!-- Tailwind CSS & FontAwesome Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS & JS cho WebGIS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <script>
     tailwind.config = {
@@ -29,6 +33,11 @@
       }
     }
   </script>
+  <style>
+    .leaflet-pane { z-index: 10 !important; }
+    .leaflet-top, .leaflet-bottom { z-index: 15 !important; }
+    .custom-div-icon { background: transparent; border: none; }
+  </style>
 </head>
 <body class="bg-evn-bg text-evn-text font-sans min-h-screen antialiased flex flex-col">
 
@@ -40,8 +49,8 @@
           <i class="fa-solid fa-bolt"></i>
         </div>
         <h2 class="text-sm font-extrabold uppercase tracking-wider text-white">BAN QUẢN LÝ DỰ ÁN</h2>
-        <h3 class="text-xs font-bold text-amber-400 tracking-wide uppercase mt-0.5">TRUYỀN TẢI ĐIỆN</h3>
-        <p class="text-[11px] text-sky-200 mt-2 font-mono">CỔNG XÁC THỰC CÁN BỘ & ĐIỀU HÀNH</p>
+        <h3 class="text-xs font-bold text-amber-400 tracking-wide uppercase mt-0.5">MỘT MÌNH LÂM</h3>
+        <p class="text-[11px] text-sky-200 mt-2 font-mono">CỔNG XÁC THỰC CÁN BỘ & ĐIỀU HÀNH GIS</p>
       </div>
 
       <form id="form-login" onsubmit="handleLogin(event)" class="p-6 sm:p-8 space-y-4 text-xs">
@@ -77,7 +86,7 @@
         </button>
 
         <div class="pt-3 text-center text-[11px] text-slate-400 border-t border-slate-100">
-          Chỉ dành riêng cho cán bộ Ban Quản Lý Dự Án Truyền Tải Điện
+          Chỉ dành riêng cho cán bộ Ban Quản Lý Dự Án Một Mình Lâm
         </div>
       </form>
     </div>
@@ -94,7 +103,7 @@
         </div>
         <div class="leading-tight">
           <h2 class="font-extrabold text-white text-xs tracking-wider uppercase">BAN QUẢN LÝ DỰ ÁN</h2>
-          <h3 class="font-bold text-amber-400 text-xs tracking-wide uppercase">TRUYỀN TẢI ĐIỆN</h3>
+          <h3 class="font-bold text-amber-400 text-xs tracking-wide uppercase">MỘT MÌNH LÂM</h3>
         </div>
       </div>
 
@@ -105,6 +114,12 @@
           <i class="fa-solid fa-tower-broadcast w-5 text-center text-amber-300"></i>
           <span>Tiến Độ Công Trình</span>
           <span class="ml-auto text-[10px] bg-sky-900/60 px-1.5 py-0.5 rounded text-sky-100 font-bold" id="badge-total-tasks">0</span>
+        </button>
+
+        <button onclick="switchTab('gis')" id="nav-gis" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition">
+          <i class="fa-solid fa-map-location-dot w-5 text-center text-sky-400"></i>
+          <span>Bản Đồ Tuyến & WebGIS</span>
+          <span class="ml-auto text-[10px] bg-sky-500/20 text-sky-300 border border-sky-400/30 px-1.5 py-0.5 rounded font-mono">LIVE</span>
         </button>
 
         <button onclick="switchTab('request')" id="nav-request" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition">
@@ -141,10 +156,10 @@
 
     <!-- KHUNG CHÍNH -->
     <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-      <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+      <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 shadow-sm shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-2 h-6 bg-[#005CA9] rounded-full hidden sm:block"></div>
-          <h2 id="page-title" class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">TIẾN ĐỘ THI CÔNG TRUYỀN TẢI</h2>
+          <h2 id="page-title" class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">TIẾN ĐỘ THI CÔNG DỰ ÁN</h2>
         </div>
 
         <div class="flex items-center gap-3">
@@ -221,7 +236,50 @@
         </div>
       </main>
 
-      <!-- TAB 2: TỜ TRÌNH -->
+      <!-- TAB 2: WEBGIS BẢN ĐỒ VỆ TINH & ĐƯỜNG DÂY -->
+      <main id="view-gis" class="p-6 space-y-4 hidden flex-1 flex flex-col">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider mr-2"><i class="fa-solid fa-layer-group text-[#005CA9] mr-1"></i> Lớp Bản Đồ:</span>
+            <button onclick="setBaseMap('sat')" id="btn-layer-sat" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#005CA9] text-white shadow-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-earth-americas"></i> Ảnh Vệ Tinh (Esri)
+            </button>
+            <button onclick="setBaseMap('osm')" id="btn-layer-osm" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-map"></i> Bản Đồ Giao Thông
+            </button>
+            <button onclick="setBaseMap('topo')" id="btn-layer-topo" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-mountain"></i> Bản Đồ Địa Hình
+            </button>
+          </div>
+
+          <div class="flex items-center gap-4 text-xs font-semibold">
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-emerald-200"></span> Đã hoàn thành/Đóng điện</div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 ring-2 ring-amber-200"></span> Đang thi công</div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-400 ring-2 ring-slate-200"></span> Chuẩn bị/Chờ làm</div>
+            <button onclick="fitGisBounds()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-1 shadow-sm">
+              <i class="fa-solid fa-compress"></i> Thu toàn tuyến
+            </button>
+          </div>
+        </div>
+
+        <div class="relative flex-1 min-h-[560px] rounded-xl border border-slate-300 overflow-hidden shadow-inner">
+          <div id="gis-map" class="w-full h-full min-h-[560px]"></div>
+          
+          <div class="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-md p-3.5 rounded-xl border border-slate-200 shadow-xl max-w-xs text-xs space-y-1.5 pointer-events-auto">
+            <div class="font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-bolt text-amber-500"></i>
+              <span>DỰ ÁN: MỘT MÌNH LÂM (500kV)</span>
+            </div>
+            <p class="text-slate-500 text-[11px]">Hệ thống giám sát định vị tọa độ móng trụ truyền tải & máy biến áp AT1 trực tuyến.</p>
+            <div class="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2 text-center text-[10px]">
+              <div class="bg-blue-50 p-1.5 rounded text-[#005CA9] font-bold"><span id="gis-stat-towers">0</span> Vị trí trụ</div>
+              <div class="bg-emerald-50 p-1.5 rounded text-emerald-700 font-bold"><span id="gis-stat-line">24.5</span> km Tuyến</div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- TAB 3: TỜ TRÌNH -->
       <main id="view-request" class="p-6 space-y-6 hidden">
         <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
           <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
@@ -248,7 +306,7 @@
         </div>
       </main>
 
-      <!-- TAB 3: ADMIN CẤP TÀI KHOẢN -->
+      <!-- TAB 4: ADMIN CẤP TÀI KHOẢN -->
       <main id="view-admin-users" class="p-6 space-y-6 hidden">
         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
           <div class="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
@@ -395,7 +453,7 @@
   <!-- JS LOGIC -->
   <script>
     const defaultUsers = [
-      { id: 1, username: 'admin', password: 'admin123', fullname: 'Ban Quản Trị Hệ Thống', position: 'Lãnh đạo Ban QLDA', role: 'admin' },
+      { id: 1, username: 'admin', password: 'admin123', fullname: 'Ban Quản Trị Hệ Thống', position: 'Lãnh đạo Ban QLDA Một Mình Lâm', role: 'admin' },
       { id: 2, username: 'canbo1', password: '123456', fullname: 'KS. Nguyễn Văn An', position: 'Giám sát trạm 500kV', role: 'user' },
       { id: 3, username: 'canbo2', password: '123456', fullname: 'KS. Trần Quốc Huy', position: 'Giám sát đường dây', role: 'user' }
     ];
@@ -409,20 +467,36 @@
       { id: 101, title: "Đăng ký lịch cắt điện đấu nối thanh cái 220kV", creator: "KS. Trần Quốc Huy", type: "Phê duyệt phương án cắt điện", amount: "Thời gian: 8 giờ", status: "pending" }
     ];
 
+    const defaultGisFeatures = [
+      { id: 'TBA500', name: 'Trạm Biến Áp 500kV Phố Nối', type: 'substation', lat: 20.9385, lng: 106.0520, status: 'progress', assignee: 'KS. Nguyễn Văn An', note: 'Đang lắp đặt MBA AT1 900MVA' },
+      { id: 'VT12', name: 'Vị trí cột VT12 (Cột đỡ vượt)', type: 'tower', lat: 20.9520, lng: 106.0710, status: 'done', assignee: 'KS. Trần Quốc Huy', note: 'Đã hoàn thành dựng cột & néo dây' },
+      { id: 'VT13', name: 'Vị trí cột VT13 (Cột đỡ trung gian)', type: 'tower', lat: 20.9650, lng: 106.0900, status: 'progress', assignee: 'KS. Trần Quốc Huy', note: 'Đang hoàn thiện lắp xà và sứ cách điện' },
+      { id: 'VT14', name: 'Vị trí cột VT14 (Cột đỡ góc)', type: 'tower', lat: 20.9780, lng: 106.1080, status: 'progress', assignee: 'KS. Nguyễn Văn An', note: 'Đã đổ bê tông móng, chuẩn bị dựng cột' },
+      { id: 'VT15', name: 'Vị trí cột VT15 (Cột néo hãm)', type: 'tower', lat: 20.9910, lng: 106.1250, status: 'todo', assignee: 'KS. Trần Quốc Huy', note: 'Chờ giải phóng mặt bằng hố móng' }
+    ];
+
     let users = JSON.parse(localStorage.getItem('bql_users')) || defaultUsers;
     let tasks = JSON.parse(localStorage.getItem('bql_tasks')) || defaultTasks;
     let requests = JSON.parse(localStorage.getItem('bql_requests')) || defaultRequests;
+    let gisFeatures = JSON.parse(localStorage.getItem('bql_gis_features')) || defaultGisFeatures;
     let currentUser = JSON.parse(localStorage.getItem('bql_current_session')) || null;
     let currentTab = 'wework';
+
+    let map = null;
+    let baseLayers = {};
+    let markerLayerGroup = null;
+    let lineLayerGroup = null;
 
     function saveAll() {
       localStorage.setItem('bql_users', JSON.stringify(users));
       localStorage.setItem('bql_tasks', JSON.stringify(tasks));
       localStorage.setItem('bql_requests', JSON.stringify(requests));
+      localStorage.setItem('bql_gis_features', JSON.stringify(gisFeatures));
       renderWework();
       renderRequests();
       renderUsersTable();
       populateAssigneeOptions();
+      if (map) renderGisLayers();
     }
 
     function handleLogin(e) {
@@ -555,15 +629,17 @@
     function switchTab(tab) {
       currentTab = tab;
       const viewW = document.getElementById('view-wework');
+      const viewG = document.getElementById('view-gis');
       const viewR = document.getElementById('view-request');
       const viewU = document.getElementById('view-admin-users');
 
       const navW = document.getElementById('nav-wework');
+      const navG = document.getElementById('nav-gis');
       const navR = document.getElementById('nav-request');
       const navU = document.getElementById('nav-admin-users');
 
-      [navW, navR, navU].forEach(n => n.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition");
-      viewW.classList.add('hidden'); viewR.classList.add('hidden'); viewU.classList.add('hidden');
+      [navW, navG, navR, navU].forEach(n => n.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition");
+      viewW.classList.add('hidden'); viewG.classList.add('hidden'); viewR.classList.add('hidden'); viewU.classList.add('hidden');
 
       const pageTitle = document.getElementById('page-title');
       const btnCreate = document.getElementById('btn-create');
@@ -571,19 +647,28 @@
       if (tab === 'wework') {
         viewW.classList.remove('hidden');
         navW.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[#005CA9] text-white transition shadow-sm font-semibold";
-        pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN TRUYỀN TẢI ĐIỆN - ĐIỀU HÀNH TIẾN ĐỘ THI CÔNG";
+        pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN MỘT MÌNH LÂM - TIẾN ĐỘ THI CÔNG KANBAN";
         btnCreate.classList.remove('hidden');
         document.getElementById('btn-create-text').innerText = "Giao Việc Thi Công";
+      } else if (tab === 'gis') {
+        viewG.classList.remove('hidden');
+        navG.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-sky-700 text-white transition shadow-sm font-semibold";
+        pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN MỘT MÌNH LÂM - HỆ THỐNG WEBGIS & BẢN ĐỒ VỆ TINH";
+        btnCreate.classList.add('hidden');
+        
+        setTimeout(() => {
+          initGisMap();
+        }, 100);
       } else if (tab === 'request') {
         viewR.classList.remove('hidden');
         navR.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-emerald-600 text-white transition shadow-sm font-semibold";
-        pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN TRUYỀN TẢI ĐIỆN - PHÊ DUYỆT TỜ TRÌNH & VẬT TƯ";
+        pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN MỘT MÌNH LÂM - PHÊ DUYỆT TỜ TRÌNH & VẬT TƯ";
         btnCreate.classList.remove('hidden');
         document.getElementById('btn-create-text').innerText = "Tạo Tờ Trình Mới";
       } else {
         viewU.classList.remove('hidden');
         navU.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-cyan-700 text-white transition shadow-sm font-semibold";
-        pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN TRUYỀN TẢI ĐIỆN - TRUNG TÂM PHÂN QUYỀN & CẤP TÀI KHOẢN";
+        pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN MỘT MÌNH LÂM - TRUNG TÂM PHÂN QUYỀN & CẤP TÀI KHOẢN";
         btnCreate.classList.add('hidden');
       }
     }
@@ -740,7 +825,164 @@
       }
     }
 
-    // Tự động kiểm tra phiên đăng nhập khi tải trang
+    // ==========================================
+    // KHỐI XỬ LÝ WEBGIS VÀ BẢN ĐỒ VỆ TINH LEAFLET
+    // ==========================================
+    function initGisMap() {
+      if (map) {
+        map.invalidateSize();
+        return;
+      }
+
+      map = L.map('gis-map', {
+        center: [20.9650, 106.0900],
+        zoom: 12,
+        zoomControl: true
+      });
+
+      const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri',
+        maxZoom: 19
+      });
+      const esriLabels = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19
+      });
+      const satGroup = L.layerGroup([esriSatellite, esriLabels]);
+
+      const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19
+      });
+
+      const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenTopoMap',
+        maxZoom: 17
+      });
+
+      baseLayers = {
+        sat: satGroup,
+        osm: osm,
+        topo: topo
+      };
+
+      satGroup.addTo(map);
+
+      markerLayerGroup = L.layerGroup().addTo(map);
+      lineLayerGroup = L.layerGroup().addTo(map);
+
+      renderGisLayers();
+      map.invalidateSize();
+    }
+
+    function setBaseMap(type) {
+      if (!map) return;
+      Object.values(baseLayers).forEach(layer => map.removeLayer(layer));
+      if (baseLayers[type]) {
+        map.addLayer(baseLayers[type]);
+      }
+
+      const btns = {
+        sat: document.getElementById('btn-layer-sat'),
+        osm: document.getElementById('btn-layer-osm'),
+        topo: document.getElementById('btn-layer-topo')
+      };
+      Object.keys(btns).forEach(key => {
+        if (key === type) {
+          btns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#005CA9] text-white shadow-sm flex items-center gap-1.5";
+        } else {
+          btns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5";
+        }
+      });
+    }
+
+    function renderGisLayers() {
+      if (!map || !markerLayerGroup || !lineLayerGroup) return;
+
+      markerLayerGroup.clearLayers();
+      lineLayerGroup.clearLayers();
+
+      const polylineCoords = [];
+      let towerCount = 0;
+
+      gisFeatures.forEach(feat => {
+        polylineCoords.push([feat.lat, feat.lng]);
+        if (feat.type === 'tower') towerCount++;
+
+        let bgClass = "bg-slate-500";
+        let statusText = "Chờ thi công";
+        if (feat.status === 'done') {
+          bgClass = "bg-emerald-600";
+          statusText = "Đã hoàn thành / Đóng điện";
+        } else if (feat.status === 'progress') {
+          bgClass = "bg-amber-500";
+          statusText = "Đang thi công";
+        }
+
+        const iconHtml = feat.type === 'substation'
+          ? `<div class="w-8 h-8 rounded-full ${bgClass} border-2 border-white shadow-xl flex items-center justify-center text-white text-xs"><i class="fa-solid fa-bolt"></i></div>`
+          : `<div class="w-6 h-6 rounded-full ${bgClass} border-2 border-white shadow-lg flex items-center justify-center text-white text-[10px] font-bold"><i class="fa-solid fa-tower-broadcast"></i></div>`;
+
+        const customIcon = L.divIcon({
+          className: 'custom-div-icon',
+          html: iconHtml,
+          iconSize: feat.type === 'substation' ? [32, 32] : [24, 24],
+          iconAnchor: feat.type === 'substation' ? [16, 16] : [12, 12]
+        });
+
+        const popupContent = `
+          <div class="p-1 font-sans text-xs space-y-2 min-w-[210px]">
+            <div class="border-b border-slate-200 pb-1.5">
+              <span class="font-extrabold text-slate-900 text-sm block">${feat.name}</span>
+              <span class="text-[10px] text-slate-400 font-mono">Tọa độ: ${feat.lat.toFixed(4)}, ${feat.lng.toFixed(4)}</span>
+            </div>
+            <div class="space-y-1 text-slate-600">
+              <p><strong>Cán bộ giám sát:</strong> ${feat.assignee}</p>
+              <p><strong>Hiện trạng:</strong> <span class="font-semibold text-slate-800">${feat.note}</span></p>
+              <p><strong>Tiến độ:</strong> <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white ${bgClass}">${statusText}</span></p>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
+              <button onclick="updateGisStatus('${feat.id}', 'progress')" class="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded text-[10px] font-bold">Đang làm</button>
+              <button onclick="updateGisStatus('${feat.id}', 'done')" class="px-2 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded text-[10px] font-bold">Xong ✓</button>
+            </div>
+          </div>
+        `;
+
+        const marker = L.marker([feat.lat, feat.lng], { icon: customIcon }).bindPopup(popupContent);
+        markerLayerGroup.addLayer(marker);
+      });
+
+      if (polylineCoords.length > 1) {
+        const transmissionLine = L.polyline(polylineCoords, {
+          color: '#E65100',
+          weight: 4,
+          opacity: 0.85,
+          dashArray: '8, 8',
+          lineJoin: 'round'
+        }).bindTooltip("Tuyến đường dây Một Mình Lâm 500kV", { sticky: true });
+        
+        lineLayerGroup.addLayer(transmissionLine);
+      }
+
+      document.getElementById('gis-stat-towers').innerText = towerCount;
+    }
+
+    function fitGisBounds() {
+      if (!map || gisFeatures.length === 0) return;
+      const bounds = L.latLngBounds(gisFeatures.map(f => [f.lat, f.lng]));
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+
+    function updateGisStatus(id, newStatus) {
+      const feat = gisFeatures.find(f => f.id === id);
+      if (feat) {
+        feat.status = newStatus;
+        if (newStatus === 'done') feat.note = "Đã nghiệm thu hoàn thành";
+        if (newStatus === 'progress') feat.note = "Đang tích cực triển khai tại công trường";
+        saveAll();
+        map.closePopup();
+      }
+    }
+
     if (currentUser) {
       showApp();
     } else {

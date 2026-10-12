@@ -37,6 +37,7 @@
     .leaflet-pane { z-index: 10 !important; }
     .leaflet-top, .leaflet-bottom { z-index: 15 !important; }
     .custom-div-icon { background: transparent; border: none; }
+    .measure-cursor { cursor: crosshair !important; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -116,27 +117,27 @@
           <i class="fa-solid fa-circle-dot text-emerald-400 text-[8px] animate-pulse"></i> Dự án đang điều hành:
         </div>
         <div class="text-white font-semibold leading-tight">Lắp máy 2 TBA 220kV Tam Phước</div>
-        <div class="text-slate-400 text-[10px] mt-0.5 font-mono">QĐ 855/QĐ-EVNNPT | 250MVA</div>
+        <div class="text-slate-400 text-[10px] mt-0.5 font-mono">10.8785°N, 106.9148°E | 250MVA</div>
       </div>
 
       <nav class="flex-1 px-3 py-4 space-y-1.5 text-sm font-medium">
         <div class="px-3 pb-2 text-[11px] font-bold text-sky-300/60 uppercase tracking-wider">Hệ Thống Nghiệp Vụ</div>
         
-        <button onclick="switchTab('overview')" id="nav-overview" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition">
-          <i class="fa-solid fa-circle-info w-5 text-center text-amber-400"></i>
-          <span>Hồ Sơ & Quy Mô Dự Án</span>
+        <button onclick="switchTab('gis')" id="nav-gis" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[#005CA9] text-white transition shadow-sm font-semibold">
+          <i class="fa-solid fa-map-location-dot w-5 text-center text-emerald-300"></i>
+          <span>WebGIS TBA Tam Phước</span>
+          <span class="ml-auto text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded font-mono">GPS</span>
         </button>
 
-        <button onclick="switchTab('wework')" id="nav-wework" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[#005CA9] text-white transition shadow-sm font-semibold">
+        <button onclick="switchTab('wework')" id="nav-wework" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition">
           <i class="fa-solid fa-tower-broadcast w-5 text-center text-sky-300"></i>
           <span>Tiến Độ Hạng Mục Thi Công</span>
           <span class="ml-auto text-[10px] bg-sky-900/60 px-1.5 py-0.5 rounded text-sky-100 font-bold" id="badge-total-tasks">0</span>
         </button>
 
-        <button onclick="switchTab('gis')" id="nav-gis" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition">
-          <i class="fa-solid fa-map-location-dot w-5 text-center text-emerald-400"></i>
-          <span>WebGIS TBA Tam Phước</span>
-          <span class="ml-auto text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-1.5 py-0.5 rounded font-mono">220kV</span>
+        <button onclick="switchTab('overview')" id="nav-overview" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition">
+          <i class="fa-solid fa-circle-info w-5 text-center text-amber-400"></i>
+          <span>Hồ Sơ & Quy Mô Dự Án</span>
         </button>
 
         <button onclick="switchTab('request')" id="nav-request" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition">
@@ -148,7 +149,7 @@
         <div class="px-3 pt-4 pb-2 text-[11px] font-bold text-sky-300/60 uppercase tracking-wider" id="admin-menu-header">Khu Vực Quản Trị</div>
         <button onclick="switchTab('admin-users')" id="nav-admin-users" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-slate-300 hover:bg-[#003B64] transition">
           <i class="fa-solid fa-user-gear w-5 text-center text-cyan-400"></i>
-          <span>Quản Trị Cán Bộ & Cấp TK</span>
+          <span>Quản Trị Cán Bộc & Cấp TK</span>
           <span class="ml-auto text-[10px] bg-cyan-900/60 px-1.5 py-0.5 rounded text-cyan-200 font-bold" id="badge-total-users">0</span>
         </button>
       </nav>
@@ -176,12 +177,18 @@
       <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-20 shadow-sm shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-2 h-6 bg-[#005CA9] rounded-full hidden sm:block"></div>
-          <h2 id="page-title" class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">TIẾN ĐỘ THI CÔNG DỰ ÁN</h2>
+          <h2 id="page-title" class="text-base sm:text-lg font-bold text-slate-800 tracking-tight">WEBGIS TBA 220kV TAM PHƯỚC</h2>
         </div>
 
         <div class="flex items-center gap-2.5">
+          <!-- Nút mở trực tiếp Google Maps -->
+          <a href="https://www.google.com/maps/place/10%C2%B052'42.6%22N+106%C2%B054'53.3%22E/@10.878499,106.914802,17z" target="_blank" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition" title="Mở tọa độ trạm trên Google Maps vệ tinh">
+            <i class="fa-brands fa-google text-rose-500"></i>
+            <span class="hidden sm:inline">Mở Google Maps</span>
+          </a>
+
           <!-- Nút xuất Excel -->
-          <button id="btn-export-excel" onclick="exportTasksToExcel()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition" title="Xuất dữ liệu tiến độ ra Excel">
+          <button id="btn-export-excel" onclick="exportTasksToExcel()" class="hidden px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition" title="Xuất dữ liệu tiến độ ra Excel">
             <i class="fa-solid fa-file-excel"></i>
             <span class="hidden sm:inline">Xuất Excel</span>
           </button>
@@ -194,97 +201,77 @@
         </div>
       </header>
 
-      <!-- TAB 0: TỔNG QUAN DỰ ÁN TAM PHƯỚC (THEO HỒ SƠ GOOGLE DRIVE) -->
-      <main id="view-overview" class="p-6 space-y-6 hidden">
-        <!-- Thẻ KPI Thông số cơ bản -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tổng Mức Đầu Tư</p>
-            <p class="text-2xl font-black text-[#005CA9] mt-1">118,918 <span class="text-xs font-normal text-slate-500">tỷ VNĐ</span></p>
-            <p class="text-[11px] text-emerald-600 mt-1 font-medium"><i class="fa-solid fa-check-double"></i> QĐ 855/QĐ-EVNNPT</p>
+      <!-- TAB 1: WEBGIS BẢN ĐỒ VỆ TINH & ĐO KHOẢNG CÁCH (TBA TAM PHƯỚC) -->
+      <main id="view-gis" class="p-6 space-y-4 flex-1 flex flex-col">
+        <!-- Thanh điều khiển WebGIS đa tính năng -->
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
+          <!-- Nhóm 1: Chọn lớp bản đồ -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="font-bold text-slate-700 uppercase tracking-wider mr-1 text-[11px]"><i class="fa-solid fa-layer-group text-[#005CA9]"></i> Lớp Nền:</span>
+            <button onclick="setBaseMap('sat')" id="btn-layer-sat" class="px-3 py-1.5 rounded-lg font-semibold bg-[#005CA9] text-white shadow-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-earth-americas"></i> Vệ Tinh (Esri)
+            </button>
+            <button onclick="setBaseMap('osm')" id="btn-layer-osm" class="px-3 py-1.5 rounded-lg font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-map"></i> Bản Đồ Đường
+            </button>
+            <button onclick="setBaseMap('topo')" id="btn-layer-topo" class="px-3 py-1.5 rounded-lg font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-mountain"></i> Địa Hình
+            </button>
           </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Công Suất Trạm</p>
-            <p class="text-2xl font-black text-amber-600 mt-1">2 x 250 <span class="text-xs font-normal text-slate-500">MVA</span></p>
-            <p class="text-[11px] text-slate-500 mt-1 font-medium">Lắp MBA AT2 (220/110/22kV)</p>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Mặt Bằng & GPMB</p>
-            <p class="text-2xl font-black text-emerald-600 mt-1">0 <span class="text-xs font-normal text-slate-500">héc-ta thu hồi</span></p>
-            <p class="text-[11px] text-slate-500 mt-1 font-medium">Trong khuôn viên trạm hiện hữu</p>
-          </div>
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Mục Tiêu Đóng Điện</p>
-            <p class="text-2xl font-black text-indigo-600 mt-1">Năm 2026</p>
-            <p class="text-[11px] text-slate-500 mt-1 font-medium">Cấp điện phụ tải tỉnh Đồng Nai</p>
+
+          <!-- Nhóm 2: Công cụ Đo Khoảng Cách & Định Vị Tức Thời -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- NÚT BAY TỚI VỊ TRÍ TRẠM BIẾN ÁP -->
+            <button onclick="flyToStation()" class="px-3.5 py-1.5 rounded-lg font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm flex items-center gap-1.5 transition" title="Bấm vào đây để nhảy ngay về vị trí Trạm Tam Phước">
+              <i class="fa-solid fa-crosshairs"></i> Về Vị Trí Trạm Tam Phước
+            </button>
+
+            <!-- CÔNG CỤ ĐO ĐƯỜNG KHOẢNG CÁCH -->
+            <button onclick="toggleMeasureTool()" id="btn-measure" class="px-3 py-1.5 rounded-lg font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-ruler-combined text-indigo-600"></i>
+              <span id="txt-measure">Đo Khoảng Cách</span>
+            </button>
+
+            <button onclick="clearMeasure()" id="btn-clear-measure" class="hidden px-2.5 py-1.5 rounded-lg font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1 transition" title="Xóa tuyến đo">
+              <i class="fa-solid fa-trash-can"></i> Xóa Đo
+            </button>
           </div>
         </div>
 
-        <!-- Bảng Cơ Cấu Tổng Mức Đầu Tư & Quy Mô Kỹ Thuật -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
-            <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
-              <i class="fa-solid fa-coins text-amber-500"></i> Cơ Cấu Chi Phí Đầu Tư Xây Dựng (QĐ 855)
-            </h3>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-semibold uppercase">
-                  <tr>
-                    <th class="py-2.5 px-3">Khoản mục chi phí</th>
-                    <th class="py-2.5 px-3 text-right">Giá trị dự toán (VNĐ)</th>
-                    <th class="py-2.5 px-3 text-right">Tỷ trọng</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 font-medium">
-                  <tr><td class="py-2.5 px-3 text-slate-700">1. Chi phí thiết bị</td><td class="py-2.5 px-3 text-right font-mono font-bold text-blue-700">72.506.214.000</td><td class="py-2.5 px-3 text-right text-slate-500">60.9%</td></tr>
-                  <tr><td class="py-2.5 px-3 text-slate-700">2. Chi phí xây dựng</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">14.950.580.000</td><td class="py-2.5 px-3 text-right text-slate-500">12.6%</td></tr>
-                  <tr><td class="py-2.5 px-3 text-slate-700">3. Chi phí dự phòng</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">19.708.403.000</td><td class="py-2.5 px-3 text-right text-slate-500">16.6%</td></tr>
-                  <tr><td class="py-2.5 px-3 text-slate-700">4. Chi phí khác</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">6.215.800.000</td><td class="py-2.5 px-3 text-right text-slate-500">5.2%</td></tr>
-                  <tr><td class="py-2.5 px-3 text-slate-700">5. Chi phí tư vấn ĐTXD</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">4.053.858.000</td><td class="py-2.5 px-3 text-right text-slate-500">3.4%</td></tr>
-                  <tr><td class="py-2.5 px-3 text-slate-700">6. Chi phí quản lý dự án</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">1.483.804.000</td><td class="py-2.5 px-3 text-right text-slate-500">1.3%</td></tr>
-                  <tr class="bg-blue-50/70 font-bold text-slate-900"><td class="py-2.5 px-3">TỔNG CỘNG</td><td class="py-2.5 px-3 text-right font-mono text-[#005CA9] text-sm">118.918.659.000</td><td class="py-2.5 px-3 text-right">100%</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+        <!-- Khung bản đồ Leaflet -->
+        <div class="relative flex-1 min-h-[560px] rounded-xl border border-slate-300 overflow-hidden shadow-inner">
+          <div id="gis-map" class="w-full h-full min-h-[560px]"></div>
 
-          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
-            <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
-              <i class="fa-solid fa-list-ol text-blue-600"></i> Quy Mô & Thông Số Kỹ Thuật Chính
-            </h3>
-            <ul class="text-xs space-y-2.5 text-slate-700">
-              <li class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
-                <i class="fa-solid fa-bolt text-amber-500 mt-0.5"></i>
-                <div>
-                  <strong>Máy biến áp AT2 (220/110/22kV - 250MVA):</strong> Tự ngẫu 3 pha ngoài trời, cấp điện áp chịu ngắn mạch 50kA/1s (220kV) & 40kA/1s (110kV).
-                </div>
-              </li>
-              <li class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
-                <i class="fa-solid fa-network-wired text-sky-600 mt-0.5"></i>
-                <div>
-                  <strong>Ngăn lộ phân phối:</strong> 01 ngăn lộ tổng 220kV (AT2); 01 ngăn lộ tổng 110kV (AT2) + 02 ngăn lộ đường dây 110kV mở rộng.
-                </div>
-              </li>
-              <li class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
-                <i class="fa-solid fa-fire-extinguisher text-rose-500 mt-0.5"></i>
-                <div>
-                  <strong>Phòng cháy chữa cháy (PCCC):</strong> Giàn phun sương làm mát & dập cháy MBA AT2 đấu nối ống cấp nước trạm hiện có.
-                </div>
-              </li>
-              <li class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
-                <i class="fa-solid fa-satellite-dish text-indigo-600 mt-0.5"></i>
-                <div>
-                  <strong>Hệ thống SCADA & Rơle:</strong> Chuẩn IEC 61850, kết nối truyền số liệu SCADA/EMS về Trung tâm Điều độ A2 và TT Giám sát B02.
-                </div>
-              </li>
-            </ul>
+          <!-- Bảng thông báo kết quả đo khoảng cách nổi trên bản đồ -->
+          <div id="measure-result-box" class="hidden absolute top-4 right-4 z-20 bg-slate-900/90 backdrop-blur-md text-white p-3 rounded-xl shadow-2xl border border-slate-700 text-xs space-y-1 min-w-[210px] pointer-events-auto">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-1.5">
+              <span class="font-bold flex items-center gap-1.5 text-amber-400">
+                <i class="fa-solid fa-ruler"></i> Kết Quả Đo
+              </span>
+              <button onclick="clearMeasure()" class="text-slate-400 hover:text-rose-400"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-[11px] text-slate-300">Nhấp chuột lên bản đồ để chọn các điểm đo.</p>
+            <div class="pt-1 text-base font-black text-emerald-400 font-mono" id="measure-total-distance">0 m</div>
+            <div class="text-[10px] text-slate-400" id="measure-points-count">0 điểm mốc</div>
+          </div>
+          
+          <!-- Hộp thông tin nhanh ở góc bản đồ -->
+          <div class="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-md p-3.5 rounded-xl border border-slate-200 shadow-xl max-w-xs text-xs space-y-1.5 pointer-events-auto">
+            <div class="font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-bolt text-amber-500"></i>
+              <span>TBA 220kV TAM PHƯỚC</span>
+            </div>
+            <p class="text-slate-500 text-[11px]">Tọa độ: <span class="font-mono text-slate-700 font-bold">10.878499, 106.914802</span> (Phường Phước Tân, TP. Biên Hòa, Đồng Nai).</p>
+            <div class="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2 text-center text-[10px]">
+              <div class="bg-blue-50 p-1.5 rounded text-[#005CA9] font-bold"><span id="gis-stat-towers">0</span> Hạng mục ghim</div>
+              <div class="bg-emerald-50 p-1.5 rounded text-emerald-700 font-bold">MBA AT2 250MVA</div>
+            </div>
           </div>
         </div>
       </main>
 
-      <!-- TAB 1: KANBAN TIẾN ĐỘ -->
-      <main id="view-wework" class="p-6 space-y-6">
-        <!-- Thống kê tiến độ -->
+      <!-- TAB 2: KANBAN TIẾN ĐỘ -->
+      <main id="view-wework" class="p-6 space-y-6 hidden">
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
@@ -316,7 +303,6 @@
           </div>
         </div>
 
-        <!-- Thanh Tìm Kiếm & Lọc Tiến Độ -->
         <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
           <div class="flex items-center gap-2 flex-1 max-w-sm">
             <span class="text-slate-400 pl-1"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -341,7 +327,6 @@
           </div>
         </div>
 
-        <!-- Cột Kanban -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div class="bg-slate-100/80 border border-slate-200 rounded-xl p-4 flex flex-col">
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
@@ -375,50 +360,93 @@
         </div>
       </main>
 
-      <!-- TAB 2: WEBGIS BẢN ĐỒ VỆ TINH & ĐƯỜNG DÂY (TBA TAM PHƯỚC) -->
-      <main id="view-gis" class="p-6 space-y-4 hidden flex-1 flex flex-col">
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider mr-2"><i class="fa-solid fa-layer-group text-[#005CA9] mr-1"></i> Lớp Bản Đồ:</span>
-            <button onclick="setBaseMap('sat')" id="btn-layer-sat" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#005CA9] text-white shadow-sm flex items-center gap-1.5">
-              <i class="fa-solid fa-earth-americas"></i> Ảnh Vệ Tinh (Esri)
-            </button>
-            <button onclick="setBaseMap('osm')" id="btn-layer-osm" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
-              <i class="fa-solid fa-map"></i> Bản Đồ Giao Thông
-            </button>
-            <button onclick="setBaseMap('topo')" id="btn-layer-topo" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
-              <i class="fa-solid fa-mountain"></i> Bản Đồ Địa Hình
-            </button>
+      <!-- TAB 3: TỔNG QUAN DỰ ÁN TAM PHƯỚC -->
+      <main id="view-overview" class="p-6 space-y-6 hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tổng Mức Đầu Tư</p>
+            <p class="text-2xl font-black text-[#005CA9] mt-1">118,918 <span class="text-xs font-normal text-slate-500">tỷ VNĐ</span></p>
+            <p class="text-[11px] text-emerald-600 mt-1 font-medium"><i class="fa-solid fa-check-double"></i> QĐ 855/QĐ-EVNNPT</p>
           </div>
-
-          <div class="flex items-center gap-4 text-xs font-semibold">
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-emerald-200"></span> Đã hoàn thành/Đóng điện</div>
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 ring-2 ring-amber-200"></span> Đang thi công</div>
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-400 ring-2 ring-slate-200"></span> Chuẩn bị/Chờ làm</div>
-            <button onclick="fitGisBounds()" class="px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 flex items-center gap-1 shadow-sm">
-              <i class="fa-solid fa-compress"></i> Căn giữa trạm
-            </button>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Công Suất Trạm</p>
+            <p class="text-2xl font-black text-amber-600 mt-1">2 x 250 <span class="text-xs font-normal text-slate-500">MVA</span></p>
+            <p class="text-[11px] text-slate-500 mt-1 font-medium">Lắp MBA AT2 (220/110/22kV)</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Mặt Bằng & GPMB</p>
+            <p class="text-2xl font-black text-emerald-600 mt-1">0 <span class="text-xs font-normal text-slate-500">héc-ta thu hồi</span></p>
+            <p class="text-[11px] text-slate-500 mt-1 font-medium">Trong khuôn viên trạm hiện hữu</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Mục Tiêu Đóng Điện</p>
+            <p class="text-2xl font-black text-indigo-600 mt-1">Năm 2026</p>
+            <p class="text-[11px] text-slate-500 mt-1 font-medium">Cấp điện phụ tải tỉnh Đồng Nai</p>
           </div>
         </div>
 
-        <div class="relative flex-1 min-h-[560px] rounded-xl border border-slate-300 overflow-hidden shadow-inner">
-          <div id="gis-map" class="w-full h-full min-h-[560px]"></div>
-          
-          <div class="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-md p-3.5 rounded-xl border border-slate-200 shadow-xl max-w-xs text-xs space-y-1.5 pointer-events-auto">
-            <div class="font-extrabold text-slate-900 flex items-center gap-2">
-              <i class="fa-solid fa-bolt text-amber-500"></i>
-              <span>TBA 220kV TAM PHƯỚC</span>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+            <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-coins text-amber-500"></i> Cơ Cấu Chi Phí Đầu Tư Xây Dựng (QĐ 855)
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-semibold uppercase">
+                  <tr>
+                    <th class="py-2.5 px-3">Khoản mục chi phí</th>
+                    <th class="py-2.5 px-3 text-right">Giá trị dự toán (VNĐ)</th>
+                    <th class="py-2.5 px-3 text-right">Tỷ trọng</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium">
+                  <tr><td class="py-2.5 px-3 text-slate-700">1. Chi phí thiết bị</td><td class="py-2.5 px-3 text-right font-mono font-bold text-blue-700">72.506.214.000</td><td class="py-2.5 px-3 text-right text-slate-500">60.9%</td></tr>
+                  <tr><td class="py-2.5 px-3 text-slate-700">2. Chi phí xây dựng</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">14.950.580.000</td><td class="py-2.5 px-3 text-right text-slate-500">12.6%</td></tr>
+                  <tr><td class="py-2.5 px-3 text-slate-700">3. Chi phí dự phòng</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">19.708.403.000</td><td class="py-2.5 px-3 text-right text-slate-500">16.6%</td></tr>
+                  <tr><td class="py-2.5 px-3 text-slate-700">4. Chi phí khác</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">6.215.800.000</td><td class="py-2.5 px-3 text-right text-slate-500">5.2%</td></tr>
+                  <tr><td class="py-2.5 px-3 text-slate-700">5. Chi phí tư vấn ĐTXD</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">4.053.858.000</td><td class="py-2.5 px-3 text-right text-slate-500">3.4%</td></tr>
+                  <tr><td class="py-2.5 px-3 text-slate-700">6. Chi phí quản lý dự án</td><td class="py-2.5 px-3 text-right font-mono font-bold text-slate-800">1.483.804.000</td><td class="py-2.5 px-3 text-right text-slate-500">1.3%</td></tr>
+                  <tr class="bg-blue-50/70 font-bold text-slate-900"><td class="py-2.5 px-3">TỔNG CỘNG</td><td class="py-2.5 px-3 text-right font-mono text-[#005CA9] text-sm">118.918.659.000</td><td class="py-2.5 px-3 text-right">100%</td></tr>
+                </tbody>
+              </table>
             </div>
-            <p class="text-slate-500 text-[11px]">Định vị thiết bị mở rộng ngăn lộ & MBA AT2 250MVA trong khuôn viên trạm hiện hữu (P. Phước Tân, TP. Biên Hòa).</p>
-            <div class="pt-2 border-t border-slate-200 grid grid-cols-2 gap-2 text-center text-[10px]">
-              <div class="bg-blue-50 p-1.5 rounded text-[#005CA9] font-bold"><span id="gis-stat-towers">0</span> Vị trí lắp đặt</div>
-              <div class="bg-emerald-50 p-1.5 rounded text-emerald-700 font-bold">220/110kV Cấp I</div>
-            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-3">
+            <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-list-ol text-blue-600"></i> Quy Mô Kỹ Thuật Trọng Điểm
+            </h3>
+            <ul class="text-xs space-y-2.5 text-slate-700">
+              <li class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
+                <i class="fa-solid fa-bolt text-amber-500 mt-0.5"></i>
+                <div>
+                  <strong>Máy biến áp AT2 (220/110/22kV - 250MVA):</strong> Tự ngẫu 3 pha ngoài trời, cấp điện áp chịu ngắn mạch 50kA/1s (220kV) & 40kA/1s (110kV).
+                </div>
+              </li>
+              <li class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
+                <i class="fa-solid fa-network-wired text-sky-600 mt-0.5"></i>
+                <div>
+                  <strong>Ngăn lộ phân phối:</strong> 01 ngăn lộ tổng 220kV (AT2); 01 ngăn lộ tổng 110kV (AT2) + 02 ngăn lộ đường dây 110kV mở rộng.
+                </div>
+              </li>
+              <li class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
+                <i class="fa-solid fa-fire-extinguisher text-rose-500 mt-0.5"></i>
+                <div>
+                  <strong>PCCC:</strong> Giàn phun sương làm mát & dập cháy MBA AT2 đấu nối vào hệ thống trạm hiện hữu.
+                </div>
+              </li>
+              <li class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
+                <i class="fa-solid fa-satellite-dish text-indigo-600 mt-0.5"></i>
+                <div>
+                  <strong>SCADA & Rơle:</strong> Chuẩn IEC 61850, kết nối SCADA/EMS về Trung tâm Điều độ A2 và B02.
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
       </main>
 
-      <!-- TAB 3: TỜ TRÌNH & PHƯƠNG ÁN THI CÔNG -->
+      <!-- TAB 4: TỜ TRÌNH & PHƯƠNG ÁN THI CÔNG -->
       <main id="view-request" class="p-6 space-y-6 hidden">
         <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
           <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
@@ -445,7 +473,7 @@
         </div>
       </main>
 
-      <!-- TAB 4: ADMIN CẤP TÀI KHOẢN -->
+      <!-- TAB 5: ADMIN CẤP TÀI KHOẢN -->
       <main id="view-admin-users" class="p-6 space-y-6 hidden">
         <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
           <div class="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
@@ -507,7 +535,7 @@
         </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">Chức vụ / Vị trí công tác</label>
-          <input type="text" id="new-user-position" required placeholder="Ví dụ: Kỹ sư kỹ thuật an toàn - BQL Tam Phước" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#004B87]">
+          <input type="text" id="new-user-position" required placeholder="Ví dụ: Kỹ sư an toàn - BQL Tam Phước" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#004B87]">
         </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">Quyền hạn hệ thống</label>
@@ -565,7 +593,7 @@
       <form id="form-request" onsubmit="handleCreateRequest(event)" class="p-5 space-y-3.5 text-xs hidden">
         <div>
           <label class="block font-semibold text-slate-700 mb-1">Tiêu đề tờ trình / Phương án *</label>
-          <input type="text" id="req-title" required placeholder="Ví dụ: Đăng ký lịch cắt điện thanh cái C11 TBA Tam Phước..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#005CA9]">
+          <input type="text" id="req-title" required placeholder="Ví dụ: Đăng ký lịch cắt điện thanh cái C11..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#005CA9]">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -592,14 +620,15 @@
 
   <!-- JS LOGIC ĐIỀU HÀNH -->
   <script>
-    // Dữ liệu người dùng mặc định
+    // TỌA ĐỘ GỐC CHUẨN TỪ GOOGLE MAPS CỦA TRẠM 220kV TAM PHƯỚC
+    const STATION_CENTER = [10.878499, 106.914802];
+
     const defaultUsers = [
       { id: 1, username: 'admin', password: 'admin123', fullname: 'Ban Quản Trị Hệ Thống', position: 'Giám đốc Ban QLDA Một Mình Lâm', role: 'admin' },
       { id: 2, username: 'canbo1', password: '123456', fullname: 'KS. Nguyễn Văn An', position: 'Giám sát Nhất thứ & Máy biến áp', role: 'user' },
       { id: 3, username: 'canbo2', password: '123456', fullname: 'KS. Trần Quốc Huy', position: 'Giám sát Nhị thứ & SCADA/PCCC', role: 'user' }
     ];
 
-    // Dữ liệu tiến độ chuẩn theo dự án TBA 220kV Tam Phước (QĐ 855)
     const defaultTasks = [
       { id: 1, title: "Đổ bê tông móng bè máy biến áp AT2 250MVA", assignee: "KS. Nguyễn Văn An", priority: "Khẩn cấp", deadline: "2026-10-30", status: "progress" },
       { id: 2, title: "Lắp đặt trụ đỡ thiết bị & giàn xà ngăn tổng 220kV", assignee: "KS. Nguyễn Văn An", priority: "Cao", deadline: "2026-11-15", status: "todo" },
@@ -608,21 +637,19 @@
       { id: 5, title: "Khảo sát mặt bằng & thỏa thuận PCCC với Công an tỉnh Đồng Nai", assignee: "KS. Trần Quốc Huy", priority: "Bình thường", deadline: "2026-09-15", status: "done" }
     ];
 
-    // Sổ tờ trình / phương án thi công
     const defaultRequests = [
       { id: 101, title: "Phương án thi công biện pháp an toàn lắp đặt MBA AT2", creator: "KS. Nguyễn Văn An", type: "Phương án thi công biện pháp an toàn", amount: "Gói thầu số 5", status: "approved" },
       { id: 102, title: "Đăng ký cắt điện thanh cái C11 phục vụ đấu nối ngăn 110kV", creator: "KS. Trần Quốc Huy", type: "Phê duyệt phương án cắt điện", amount: "Cắt điện: 8 giờ", status: "pending" },
       { id: 103, title: "Đề nghị cấp phát cáp lực và ống nhôm D120/108 cho ngăn 220kV", creator: "KS. Nguyễn Văn An", type: "Cấp phát vật tư thiết bị", amount: "Đợt 2", status: "pending" }
     ];
 
-    // Dữ liệu WebGIS định vị chuẩn xác tại khuôn viên TBA 220kV Tam Phước (Đồng Nai)
-    // Tọa độ gốc TBA 220kV Tam Phước: 10.8710, 106.9150
+    // CÁC HẠNG MỤC GHIM ĐÚNG KHUÔN VIÊN TRẠM BIẾN ÁP TAM PHƯỚC (QUANH TÂM 10.878499, 106.914802)
     const defaultGisFeatures = [
-      { id: 'MBA_AT2', name: 'Bệ Máy Biến Áp AT2 250MVA (220/110/22kV)', type: 'substation', lat: 10.8712, lng: 106.9148, status: 'progress', assignee: 'KS. Nguyễn Văn An', note: 'Đang gia công cốt thép & đổ bê tông móng bè B15' },
-      { id: 'BAY_220', name: 'Ngăn lộ tổng 220kV (MBA AT2)', type: 'tower', lat: 10.8716, lng: 106.9145, status: 'todo', assignee: 'KS. Nguyễn Văn An', note: 'Chờ hoàn thiện móng trụ đỡ máy cắt SF6 50kA/1s' },
-      { id: 'BAY_110', name: 'Ngăn lộ tổng 110kV & 02 Ngăn ĐZ 110kV mở rộng', type: 'tower', lat: 10.8708, lng: 106.9152, status: 'todo', assignee: 'KS. Nguyễn Văn An', note: 'Đang đào hố móng mương cáp nhánh nửa chìm' },
-      { id: 'PCCC_AT2', name: 'Hệ thống giàn phun sương PCCC MBA AT2', type: 'substation', lat: 10.8713, lng: 106.9151, status: 'progress', assignee: 'KS. Trần Quốc Huy', note: 'Đã hoàn tất kéo ống cấp nước từ trạm bơm hiện hữu' },
-      { id: 'CONTROL_ROOM', name: 'Nhà điều khiển trung tâm & Phòng Rơle IEC 61850', type: 'substation', lat: 10.8705, lng: 106.9146, status: 'done', assignee: 'KS. Trần Quốc Huy', note: 'Đã hoàn thiện lắp đặt dãy tủ điều khiển BCU ngăn mới' }
+      { id: 'MBA_AT2', name: 'Bệ Máy Biến Áp AT2 250MVA (220/110/22kV)', type: 'substation', lat: 10.878520, lng: 106.914810, status: 'progress', assignee: 'KS. Nguyễn Văn An', note: 'Đang gia công cốt thép & đổ bê tông móng bè B15' },
+      { id: 'BAY_220', name: 'Ngăn Lộ Tổng 220kV (MBA AT2)', type: 'tower', lat: 10.878850, lng: 106.914420, status: 'todo', assignee: 'KS. Nguyễn Văn An', note: 'Chờ nghiệm thu cốt móng lắp máy cắt SF6 50kA/1s' },
+      { id: 'BAY_110', name: 'Ngăn Lộ Tổng 110kV & 02 Ngăn ĐZ Mở Rộng', type: 'tower', lat: 10.878150, lng: 106.915250, status: 'todo', assignee: 'KS. Nguyễn Văn An', note: 'Đang đào hố móng mương cáp nhánh nửa chìm' },
+      { id: 'PCCC_AT2', name: 'Hệ Thống Giàn Phun Sương PCCC MBA AT2', type: 'substation', lat: 10.878600, lng: 106.914980, status: 'progress', assignee: 'KS. Trần Quốc Huy', note: 'Đã hoàn tất kéo ống cấp nước từ bể cứu hỏa trạm' },
+      { id: 'CONTROL_ROOM', name: 'Nhà Điều Khiển Trung Tâm & Phòng Rơle IEC 61850', type: 'substation', lat: 10.878050, lng: 106.914400, status: 'done', assignee: 'KS. Trần Quốc Huy', note: 'Đã hoàn thiện lắp đặt dãy tủ BCU ngăn lộ mới' }
     ];
 
     let users = JSON.parse(localStorage.getItem('bql_users')) || defaultUsers;
@@ -630,12 +657,17 @@
     let requests = JSON.parse(localStorage.getItem('bql_requests')) || defaultRequests;
     let gisFeatures = JSON.parse(localStorage.getItem('bql_gis_features')) || defaultGisFeatures;
     let currentUser = JSON.parse(localStorage.getItem('bql_current_session')) || null;
-    let currentTab = 'wework';
+    let currentTab = 'gis';
 
+    // Biến GIS và công cụ đo
     let map = null;
     let baseLayers = {};
     let markerLayerGroup = null;
     let lineLayerGroup = null;
+    let isMeasuring = false;
+    let measurePoints = [];
+    let measurePolyline = null;
+    let measureMarkers = [];
 
     function saveAll() {
       localStorage.setItem('bql_users', JSON.stringify(users));
@@ -696,7 +728,7 @@
       }
 
       saveAll();
-      switchTab('wework');
+      switchTab('gis');
     }
 
     function openCreateUserModal() { document.getElementById('modal-create-user').classList.remove('hidden'); }
@@ -810,22 +842,9 @@
       const btnCreate = document.getElementById('btn-create');
       const btnExport = document.getElementById('btn-export-excel');
 
-      if (tab === 'overview') {
-        viewO.classList.remove('hidden');
-        navO.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-amber-600 text-white transition shadow-sm font-semibold";
-        pageTitle.innerText = "HỒ SƠ DỰ ÁN LẮP MÁY 2 TBA 220kV TAM PHƯỚC (QĐ 855/QĐ-EVNNPT)";
-        btnCreate.classList.add('hidden');
-        btnExport.classList.add('hidden');
-      } else if (tab === 'wework') {
-        viewW.classList.remove('hidden');
-        navW.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[#005CA9] text-white transition shadow-sm font-semibold";
-        pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN MỘT MÌNH LÂM - TIẾN ĐỘ THI CÔNG KANBAN";
-        btnCreate.classList.remove('hidden');
-        btnExport.classList.remove('hidden');
-        document.getElementById('btn-create-text').innerText = "Giao Việc Thi Công";
-      } else if (tab === 'gis') {
+      if (tab === 'gis') {
         viewG.classList.remove('hidden');
-        navG.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-emerald-700 text-white transition shadow-sm font-semibold";
+        navG.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[#005CA9] text-white transition shadow-sm font-semibold";
         pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN MỘT MÌNH LÂM - WEBGIS KHUÔN VIÊN TBA 220kV TAM PHƯỚC";
         btnCreate.classList.add('hidden');
         btnExport.classList.add('hidden');
@@ -833,6 +852,19 @@
         setTimeout(() => {
           initGisMap();
         }, 100);
+      } else if (tab === 'wework') {
+        viewW.classList.remove('hidden');
+        navW.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-[#005CA9] text-white transition shadow-sm font-semibold";
+        pageTitle.innerText = "BAN QUẢN LÝ DỰ ÁN MỘT MÌNH LÂM - TIẾN ĐỘ THI CÔNG KANBAN";
+        btnCreate.classList.remove('hidden');
+        btnExport.classList.remove('hidden');
+        document.getElementById('btn-create-text').innerText = "Giao Việc Thi Công";
+      } else if (tab === 'overview') {
+        viewO.classList.remove('hidden');
+        navO.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-amber-600 text-white transition shadow-sm font-semibold";
+        pageTitle.innerText = "HỒ SƠ DỰ ÁN LẮP MÁY 2 TBA 220kV TAM PHƯỚC (QĐ 855/QĐ-EVNNPT)";
+        btnCreate.classList.add('hidden');
+        btnExport.classList.add('hidden');
       } else if (tab === 'request') {
         viewR.classList.remove('hidden');
         navR.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg bg-purple-700 text-white transition shadow-sm font-semibold";
@@ -862,12 +894,10 @@
       let cTodo = 0, cProg = 0, cDone = 0;
 
       tasks.forEach(t => {
-        // Đếm thống kê tổng
         if (t.status === 'todo') cTodo++;
         else if (t.status === 'progress') cProg++;
         else if (t.status === 'done') cDone++;
 
-        // Bộ lọc tìm kiếm
         if (searchTxt && !t.title.toLowerCase().includes(searchTxt)) return;
         if (filterAssignee !== 'all' && t.assignee !== filterAssignee) return;
         if (filterPriority !== 'all' && t.priority !== filterPriority) return;
@@ -1016,16 +1046,13 @@
       }
     }
 
-    // ==========================================
-    // KHỐI XUẤT EXCEL TIẾN ĐỘ DỰ ÁN
-    // ==========================================
     function exportTasksToExcel() {
       if (tasks.length === 0) {
         alert('Chưa có hạng mục nào để xuất báo cáo!');
         return;
       }
 
-      let csvContent = "\uFEFF"; // Byte Order Mark (BOM) để Excel hiển thị tiếng Việt UTF-8 không lỗi font
+      let csvContent = "\uFEFF";
       csvContent += "STT,Tên hạng mục thi công,Cán bộ phụ trách,Mức độ ưu tiên,Hạn hoàn thành,Trạng thái\n";
 
       tasks.forEach((t, idx) => {
@@ -1046,7 +1073,7 @@
     }
 
     // ==========================================
-    // KHỐI XỬ LÝ WEBGIS VÀ BẢN ĐỒ VỆ TINH LEAFLET (TBA TAM PHƯỚC)
+    // KHỐI XỬ LÝ WEBGIS VÀ BẢN ĐỒ VỆ TINH LEAFLET
     // ==========================================
     function initGisMap() {
       if (map) {
@@ -1054,9 +1081,9 @@
         return;
       }
 
-      // Tâm bản đồ tại trạm biến áp 220kV Tam Phước
+      // Khởi tạo bản đồ ngay tại tọa độ trạm Tam Phước
       map = L.map('gis-map', {
-        center: [10.8711, 106.9149],
+        center: STATION_CENTER,
         zoom: 18,
         zoomControl: true
       });
@@ -1092,6 +1119,13 @@
       lineLayerGroup = L.layerGroup().addTo(map);
 
       renderGisLayers();
+
+      // Lắng nghe sự kiện click trên bản đồ để đo khoảng cách
+      map.on('click', function(e) {
+        if (!isMeasuring) return;
+        handleMeasureClick(e.latlng);
+      });
+
       map.invalidateSize();
     }
 
@@ -1109,11 +1143,102 @@
       };
       Object.keys(btns).forEach(key => {
         if (key === type) {
-          btns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#005CA9] text-white shadow-sm flex items-center gap-1.5";
+          btns[key].className = "px-3 py-1.5 rounded-lg font-semibold bg-[#005CA9] text-white shadow-sm flex items-center gap-1.5";
         } else {
-          btns[key].className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5";
+          btns[key].className = "px-3 py-1.5 rounded-lg font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5";
         }
       });
+    }
+
+    // HÀM NHẢY NGAY VỀ VỊ TRÍ TRẠM BIẾN ÁP (FLY TO STATION)
+    function flyToStation() {
+      if (!map) return;
+      map.flyTo(STATION_CENTER, 18, {
+        duration: 1.5,
+        easeLinearity: 0.25
+      });
+    }
+
+    // ==========================================
+    // CÔNG CỤ ĐO KHOẢNG CÁCH (RULER MEASURE)
+    // ==========================================
+    function toggleMeasureTool() {
+      isMeasuring = !isMeasuring;
+      const btn = document.getElementById('btn-measure');
+      const txt = document.getElementById('txt-measure');
+      const box = document.getElementById('measure-result-box');
+      const btnClear = document.getElementById('btn-clear-measure');
+      const mapContainer = document.getElementById('gis-map');
+
+      if (isMeasuring) {
+        btn.className = "px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white shadow-sm flex items-center gap-1.5 transition ring-2 ring-indigo-300";
+        txt.innerText = "Đang bật đo (Click để đo)";
+        box.classList.remove('hidden');
+        btnClear.classList.remove('hidden');
+        mapContainer.classList.add('measure-cursor');
+      } else {
+        btn.className = "px-3 py-1.5 rounded-lg font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 flex items-center gap-1.5 transition";
+        txt.innerText = "Đo Khoảng Cách";
+        mapContainer.classList.remove('measure-cursor');
+      }
+    }
+
+    function handleMeasureClick(latlng) {
+      measurePoints.push(latlng);
+
+      // Thêm điểm ghim tròn nhỏ tại vị trí click
+      const dotMarker = L.circleMarker(latlng, {
+        radius: 5,
+        color: '#FFFFFF',
+        weight: 2,
+        fillColor: '#E65100',
+        fillOpacity: 1
+      }).addTo(map);
+      measureMarkers.push(dotMarker);
+
+      // Vẽ hoặc cập nhật đường thẳng nối giữa các điểm
+      if (!measurePolyline) {
+        measurePolyline = L.polyline(measurePoints, {
+          color: '#E65100',
+          weight: 3.5,
+          opacity: 0.9,
+          dashArray: '6, 6'
+        }).addTo(map);
+      } else {
+        measurePolyline.setLatLngs(measurePoints);
+      }
+
+      // Tính tổng khoảng cách
+      let totalMeters = 0;
+      for (let i = 0; i < measurePoints.length - 1; i++) {
+        totalMeters += measurePoints[i].distanceTo(measurePoints[i + 1]);
+      }
+
+      const totalDistEl = document.getElementById('measure-total-distance');
+      const countEl = document.getElementById('measure-points-count');
+      
+      if (totalMeters >= 1000) {
+        totalDistEl.innerText = `${(totalMeters / 1000).toFixed(2)} km (${Math.round(totalMeters)} m)`;
+      } else {
+        totalDistEl.innerText = `${totalMeters.toFixed(1)} m`;
+      }
+      countEl.innerText = `${measurePoints.length} điểm mốc đã chọn`;
+    }
+
+    function clearMeasure() {
+      measurePoints = [];
+      if (measurePolyline) {
+        map.removeLayer(measurePolyline);
+        measurePolyline = null;
+      }
+      measureMarkers.forEach(m => map.removeLayer(m));
+      measureMarkers = [];
+
+      document.getElementById('measure-total-distance').innerText = "0 m";
+      document.getElementById('measure-points-count').innerText = "0 điểm mốc";
+      document.getElementById('measure-result-box').classList.add('hidden');
+      document.getElementById('btn-clear-measure').classList.add('hidden');
+      if (isMeasuring) toggleMeasureTool();
     }
 
     function renderGisLayers() {
@@ -1154,7 +1279,7 @@
           <div class="p-1 font-sans text-xs space-y-2 min-w-[220px]">
             <div class="border-b border-slate-200 pb-1.5">
               <span class="font-extrabold text-slate-900 text-sm block">${feat.name}</span>
-              <span class="text-[10px] text-slate-400 font-mono">Tọa độ: ${feat.lat.toFixed(5)}, ${feat.lng.toFixed(5)}</span>
+              <span class="text-[10px] text-slate-400 font-mono">Tọa độ: ${feat.lat.toFixed(6)}, ${feat.lng.toFixed(6)}</span>
             </div>
             <div class="space-y-1 text-slate-600">
               <p><strong>Cán bộ giám sát:</strong> ${feat.assignee}</p>
@@ -1172,7 +1297,7 @@
         markerLayerGroup.addLayer(marker);
       });
 
-      // Tuyến đấu nối thanh cái nội bộ trạm
+      // Tuyến dây thanh cái nội bộ nối các điểm trạm
       if (polylineCoords.length > 1) {
         const busLine = L.polyline(polylineCoords, {
           color: '#E65100',
@@ -1188,12 +1313,6 @@
       document.getElementById('gis-stat-towers').innerText = featureCount;
     }
 
-    function fitGisBounds() {
-      if (!map || gisFeatures.length === 0) return;
-      const bounds = L.latLngBounds(gisFeatures.map(f => [f.lat, f.lng]));
-      map.fitBounds(bounds, { padding: [50, 50] });
-    }
-
     function updateGisStatus(id, newStatus) {
       const feat = gisFeatures.find(f => f.id === id);
       if (feat) {
@@ -1205,6 +1324,7 @@
       }
     }
 
+    // Tự động kiểm tra phiên đăng nhập
     if (currentUser) {
       showApp();
     } else {

@@ -60,4 +60,381 @@
     <div class="flex items-center gap-3">
       <div class="bg-slate-900 border border-slate-700 p-1 rounded-lg flex text-xs">
         <button id="tab-btn-tasks" onclick="switchView('tasks')" class="px-3 py-1.5 rounded-md bg-cyan-600 text-white font-medium transition">
-          <i class="fa-solid fa-
+          <i class="fa-solid fa-list-check mr-1.5"></i>Bảng Tiến Độ (Kanban)
+        </button>
+        <button id="tab-btn-map" onclick="switchView('map')" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-map-location-dot mr-1.5"></i>Bản Đồ Dự Án
+        </button>
+      </div>
+
+      <button onclick="openModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-md shadow-cyan-500/20">
+        <i class="fa-solid fa-plus"></i>
+        <span>Thêm Công Việc</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== NỘI DUNG CHÍNH ==================== -->
+  <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+
+    <!-- KPI THỐNG KÊ NHANH TIẾN ĐỘ -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-[#131E3A] border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Tổng đầu việc</p>
+          <p id="stat-total" class="text-2xl font-bold text-white mt-1">0</p>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-briefcase"></i>
+        </div>
+      </div>
+
+      <div class="bg-[#131E3A] border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Đang triển khai</p>
+          <p id="stat-in-progress" class="text-2xl font-bold text-amber-400 mt-1">0</p>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-spinner animate-spin" style="animation-duration: 6s;"></i>
+        </div>
+      </div>
+
+      <div class="bg-[#131E3A] border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Đã hoàn thành</p>
+          <p id="stat-completed" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+      </div>
+
+      <div class="bg-[#131E3A] border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-400 font-medium">Tiến độ chung</p>
+          <p id="stat-percent" class="text-2xl font-bold text-cyan-400 mt-1">0%</p>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-chart-pie"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 1: BẢNG KANBAN TIẾN ĐỘ CÔNG VIỆC -->
+    <div id="view-tasks" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <!-- Cột 1: Chuẩn bị / Chờ làm -->
+      <div class="bg-[#101932] border border-slate-800/80 rounded-xl p-4 flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+            <h3 class="font-bold text-sm text-slate-200">Chuẩn Bị / Chờ Làm</h3>
+          </div>
+          <span id="badge-todo" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">0</span>
+        </div>
+        <div id="col-todo" class="space-y-3 min-h-[300px] flex-1"></div>
+      </div>
+
+      <!-- Cột 2: Đang triển khai -->
+      <div class="bg-[#101932] border border-slate-800/80 rounded-xl p-4 flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <h3 class="font-bold text-sm text-slate-200">Đang Thực Hiện</h3>
+          </div>
+          <span id="badge-progress" class="text-xs bg-amber-950/60 text-amber-300 px-2 py-0.5 rounded font-mono">0</span>
+        </div>
+        <div id="col-progress" class="space-y-3 min-h-[300px] flex-1"></div>
+      </div>
+
+      <!-- Cột 3: Hoàn thành -->
+      <div class="bg-[#101932] border border-slate-800/80 rounded-xl p-4 flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <h3 class="font-bold text-sm text-slate-200">Đã Hoàn Thành</h3>
+          </div>
+          <span id="badge-done" class="text-xs bg-emerald-950/60 text-emerald-300 px-2 py-0.5 rounded font-mono">0</span>
+        </div>
+        <div id="col-done" class="space-y-3 min-h-[300px] flex-1"></div>
+      </div>
+
+    </div>
+
+    <!-- VIEW 2: BẢN ĐỒ VỊ TRÍ CÔNG TRÌNH / DỰ ÁN -->
+    <div id="view-map" class="hidden bg-[#101932] border border-slate-800 rounded-xl p-4 space-y-3">
+      <div class="flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2 text-slate-300">
+          <i class="fa-solid fa-location-dot text-cyan-400"></i>
+          <span>Vị trí các công trình / gói thầu đang quản lý:</span>
+        </div>
+        <span class="font-mono text-cyan-400" id="map-point-count">3 Điểm công trình</span>
+      </div>
+      <div id="map-container" class="w-full h-[520px] rounded-lg border border-slate-700"></div>
+    </div>
+
+  </main>
+
+  <!-- ==================== MODAL: THÊM CÔNG VIỆC MỚI ==================== -->
+  <div id="task-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-[#131E3A] border border-cyan-500/30 w-full max-w-lg rounded-2xl p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+        <h3 class="font-bold text-white text-base flex items-center gap-2">
+          <i class="fa-solid fa-folder-plus text-cyan-400"></i>
+          Thêm Nhiệm Vụ / Hạng Mục Mới
+        </h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="task-form" onsubmit="handleAddTask(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Tên công việc / Hạng mục *</label>
+          <input type="text" id="input-title" required class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400" placeholder="Ví dụ: Thi công trạm biến áp số 2...">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Người phụ trách</label>
+            <input type="text" id="input-assignee" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400" placeholder="Kỹ sư phụ trách...">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Mức độ ưu tiên</label>
+            <select id="input-priority" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400">
+              <option value="Cao">🔴 Cao</option>
+              <option value="Trung bình" selected>🟡 Trung bình</option>
+              <option value="Thấp">🟢 Thấp</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Hạn hoàn thành</label>
+            <input type="date" id="input-deadline" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Trạng thái ban đầu</label>
+            <select id="input-status" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400">
+              <option value="todo">Chờ làm</option>
+              <option value="progress">Đang thực hiện</option>
+              <option value="done">Đã hoàn thành</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Toạ độ công trình (tuỳ chọn: Lat, Lng)</label>
+          <input type="text" id="input-coords" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-400" placeholder="Ví dụ: 10.7769, 106.7009">
+        </div>
+
+        <div class="pt-4 border-t border-slate-800 flex justify-end gap-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Huỷ bỏ</button>
+          <button type="submit" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg shadow-md">Lưu Công Việc</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT XỬ LÝ DỮ LIỆU & BẢN ĐỒ ==================== -->
+  <script>
+    // Dữ liệu mẫu ban đầu nếu máy chưa có dữ liệu
+    const initialTasks = [
+      { id: 1, title: "Khảo sát mặt bằng móng trạm biến áp", assignee: "Nguyễn Văn A", priority: "Cao", deadline: "2026-10-20", status: "progress", coords: [10.7769, 106.7009] },
+      { id: 2, title: "Lập dự toán vật tư cáp ngầm 22kV", assignee: "Trần Thị B", priority: "Trung bình", deadline: "2026-10-25", status: "todo", coords: [10.7820, 106.6980] },
+      { id: 3, title: "Nghiệm thu bản vẽ thiết kế thi công giai đoạn 1", assignee: "Phạm Văn C", priority: "Cao", deadline: "2026-10-15", status: "done", coords: [10.7680, 106.6930] }
+    ];
+
+    let tasks = JSON.parse(localStorage.getItem('pm_tasks')) || initialTasks;
+
+    function saveTasks() {
+      localStorage.setItem('pm_tasks', JSON.stringify(tasks));
+      renderTasks();
+      updateStats();
+      if (map) renderMapMarkers();
+    }
+
+    function renderTasks() {
+      const colTodo = document.getElementById('col-todo');
+      const colProgress = document.getElementById('col-progress');
+      const colDone = document.getElementById('col-done');
+
+      colTodo.innerHTML = '';
+      colProgress.innerHTML = '';
+      colDone.innerHTML = '';
+
+      let countTodo = 0, countProg = 0, countDone = 0;
+
+      tasks.forEach(t => {
+        const card = document.createElement('div');
+        card.className = "bg-[#182647] border border-slate-700/80 p-3.5 rounded-lg shadow-sm hover:border-cyan-400/50 transition";
+        
+        const priorityColor = t.priority === 'Cao' ? 'text-rose-400 bg-rose-950/50 border-rose-800' :
+                              t.priority === 'Trung bình' ? 'text-amber-400 bg-amber-950/50 border-amber-800' : 
+                              'text-emerald-400 bg-emerald-950/50 border-emerald-800';
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <span class="text-[10px] px-2 py-0.5 rounded border font-medium ${priorityColor}">${t.priority}</span>
+            <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 text-xs transition" title="Xoá">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+          <h4 class="font-bold text-slate-100 text-xs mb-2 leading-snug">${t.title}</h4>
+          <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-700/50">
+            <span class="flex items-center gap-1.5"><i class="fa-regular fa-user text-cyan-400"></i> ${t.assignee || 'Chưa gán'}</span>
+            <span class="font-mono text-[10px]">${t.deadline || 'Không có hạn'}</span>
+          </div>
+          <div class="mt-3 pt-2 border-t border-slate-800 flex justify-end gap-1">
+            ${t.status !== 'todo' ? `<button onclick="changeStatus(${t.id}, 'todo')" class="text-[10px] px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-300">← Chờ</button>` : ''}
+            ${t.status !== 'progress' ? `<button onclick="changeStatus(${t.id}, 'progress')" class="text-[10px] px-2 py-0.5 bg-amber-900/60 hover:bg-amber-800 rounded text-amber-200">Làm việc</button>` : ''}
+            ${t.status !== 'done' ? `<button onclick="changeStatus(${t.id}, 'done')" class="text-[10px] px-2 py-0.5 bg-emerald-900/60 hover:bg-emerald-800 rounded text-emerald-200">Xong ✓</button>` : ''}
+          </div>
+        `;
+
+        if (t.status === 'todo') { colTodo.appendChild(card); countTodo++; }
+        else if (t.status === 'progress') { colProgress.appendChild(card); countProg++; }
+        else if (t.status === 'done') { colDone.appendChild(card); countDone++; }
+      });
+
+      document.getElementById('badge-todo').innerText = countTodo;
+      document.getElementById('badge-progress').innerText = countProg;
+      document.getElementById('badge-done').innerText = countDone;
+    }
+
+    function updateStats() {
+      const total = tasks.length;
+      const done = tasks.filter(t => t.status === 'done').length;
+      const prog = tasks.filter(t => t.status === 'progress').length;
+      const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      document.getElementById('stat-total').innerText = total;
+      document.getElementById('stat-in-progress').innerText = prog;
+      document.getElementById('stat-completed').innerText = done;
+      document.getElementById('stat-percent').innerText = `${percent}%`;
+    }
+
+    function changeStatus(id, newStatus) {
+      const task = tasks.find(t => t.id === id);
+      if (task) {
+        task.status = newStatus;
+        saveTasks();
+      }
+    }
+
+    function deleteTask(id) {
+      if (confirm('Bạn có chắc muốn xoá công việc này?')) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasks();
+      }
+    }
+
+    function handleAddTask(e) {
+      e.preventDefault();
+      const title = document.getElementById('input-title').value;
+      const assignee = document.getElementById('input-assignee').value;
+      const priority = document.getElementById('input-priority').value;
+      const deadline = document.getElementById('input-deadline').value;
+      const status = document.getElementById('input-status').value;
+      const coordsInput = document.getElementById('input-coords').value.trim();
+
+      let coords = null;
+      if (coordsInput) {
+        const parts = coordsInput.split(',').map(s => parseFloat(s.trim()));
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          coords = parts;
+        }
+      }
+
+      tasks.push({
+        id: Date.now(),
+        title,
+        assignee,
+        priority,
+        deadline,
+        status,
+        coords
+      });
+
+      saveTasks();
+      closeModal();
+      document.getElementById('task-form').reset();
+    }
+
+    function openModal() { document.getElementById('task-modal').classList.remove('hidden'); }
+    function closeModal() { document.getElementById('task-modal').classList.add('hidden'); }
+
+    // Chuyển đổi tab Kanban và Bản đồ
+    function switchView(view) {
+      const viewTasks = document.getElementById('view-tasks');
+      const viewMap = document.getElementById('view-map');
+      const btnTasks = document.getElementById('tab-btn-tasks');
+      const btnMap = document.getElementById('tab-btn-map');
+
+      if (view === 'tasks') {
+        viewTasks.classList.remove('hidden');
+        viewMap.classList.add('hidden');
+        btnTasks.className = "px-3 py-1.5 rounded-md bg-cyan-600 text-white font-medium transition";
+        btnMap.className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition";
+      } else {
+        viewTasks.classList.add('hidden');
+        viewMap.classList.remove('hidden');
+        btnMap.className = "px-3 py-1.5 rounded-md bg-cyan-600 text-white font-medium transition";
+        btnTasks.className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-white transition";
+        initMap();
+      }
+    }
+
+    // Bản đồ vị trí GIS
+    let map, markerLayer;
+    function initMap() {
+      if (!map) {
+        map = L.map('map-container').setView([10.7769, 106.7009], 12);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; CartoDB &copy; OpenStreetMap'
+        }).addTo(map);
+        markerLayer = L.layerGroup().addTo(map);
+      }
+      setTimeout(() => {
+        map.invalidateSize();
+        renderMapMarkers();
+      }, 200);
+    }
+
+    function renderMapMarkers() {
+      if (!markerLayer) return;
+      markerLayer.clearLayers();
+      let count = 0;
+      tasks.forEach(t => {
+        if (t.coords && t.coords.length === 2) {
+          count++;
+          const markerColor = t.status === 'done' ? '#10B981' : t.status === 'progress' ? '#F59E0B' : '#00F0FF';
+          const marker = L.circleMarker(t.coords, {
+            radius: 8,
+            fillColor: markerColor,
+            color: '#FFFFFF',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+          });
+          marker.bindPopup(`
+            <div class="font-sans">
+              <span class="text-[10px] text-cyan-400 font-bold uppercase">${t.priority}</span>
+              <h4 class="font-bold text-white text-xs mt-1 mb-1">${t.title}</h4>
+              <p class="text-[11px] text-slate-300">Phụ trách: ${t.assignee || 'Chưa rõ'}</p>
+              <p class="text-[10px] text-emerald-400 mt-1">Trạng thái: ${t.status}</p>
+            </div>
+          `);
+          markerLayer.addLayer(marker);
+        }
+      });
+      document.getElementById('map-point-count').innerText = `${count} Vị trí công trình`;
+    }
+
+    // Khởi chạy
+    renderTasks();
+    updateStats();
+  </script>
+</body>
+</html>
